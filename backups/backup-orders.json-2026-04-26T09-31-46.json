@@ -1,0 +1,19 @@
+[
+  {
+    "id": 1777195640674,
+    "customerName": "عبدالسلام عبدالله الطاهر",
+    "customerPhone": "09418087437",
+    "customerAddress": "طرابلس",
+    "items": [
+      {
+        "id": 1777195507059,
+        "name": "سروال",
+        "price": 400,
+        "quantity": 3
+      }
+    ],
+    "total": 1200,
+    "status": "جديد",
+    "createdAt": "2026-04-26T09:27:20.674Z"
+  }
+]

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل المنتج - Absi stor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: #f8f9fa;
+            direction: rtl;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        img {
+            max-width: 100%;
+            border-radius: 16px;
+        }
+        
+        .price {
+            font-size: 1.8rem;
+            color: #1a4a6f;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+        
+        .stock {
+            color: #718096;
+            margin-bottom: 1rem;
+        }
+        
+        button {
+            background: #1a4a6f;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .reviews {
+            margin-top: 2rem;
+            border-top: 2px solid #eee;
+            padding-top: 1.5rem;
+        }
+        
+        .review {
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stars {
+            color: #f39c12;
+            margin-bottom: 0.5rem;
+        }
+        
+        form {
+            margin-top: 1.5rem;
+            background: #f1f1f1;
+            padding: 1.5rem;
+            border-radius: 20px;
+        }
+        
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+        }
+        
+        .error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="productContainer"></div>
+    <div class="container reviews" id="reviewsContainer"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+        if (!productId) window.location.href = '/shop.html';
+
+        async function loadProduct() {
+            const res = await fetch(`/api/products/${productId}`);
+            const data = await res.json();
+            if (data.success) {
+                const p = data.data;
+                document.getElementById('productContainer').innerHTML = `
+                <h1>${p.name}</h1>
+                <img src="${p.imageUrl || 'https://via.placeholder.com/400'}" onerror="this.src='https://via.placeholder.com/400'">
+                <div class="price">${p.price} ريال</div>
+                <div class="stock">المتبقي: ${p.stock} قطعة</div>
+                <p>${p.description || 'لا يوجد وصف'}</p>
+                <button onclick="addToCart()"><i class="fas fa-cart-plus"></i> أضف إلى السلة</button>
+            `;
+            } else alert('المنتج غير موجود');
+        }
+
+        async function loadReviews() {
+            const res = await fetch(`/api/products/${productId}/reviews`);
+            const data = await res.json();
+            if (data.success) {
+                let html = '<h2><i class="fas fa-star"></i> تقييمات العملاء</h2>';
+                if (data.data.length === 0) html += '<p>لا توجد تقييمات بعد. كن أول من يقيّم!</p>';
+                else {
+                    data.data.forEach(r => {
+                        html += `<div class="review">
+                                <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                                <strong>${r.customerName}</strong> - <small>${new Date(r.date).toLocaleDateString()}</small>
+                                <p>${r.comment}</p>
+                            </div>`;
+                    });
+                }
+                html += `<form onsubmit="submitReview(event)">
+                        <h3>أضف تقييمك</h3>
+                        <select id="rating" required>
+                            <option value="1">1 نجمة</option><option value="2">2 نجمات</option><option value="3">3 نجمات</option>
+                            <option value="4">4 نجمات</option><option value="5" selected>5 نجمات</option>
+                        </select>
+                        <textarea id="comment" rows="3" placeholder="تعليقك" required></textarea>
+                        <input type="text" id="reviewerName" placeholder="اسمك (اختياري)">
+                        <button type="submit">إرسال التقييم</button>
+                    </form>`;
+                document.getElementById('reviewsContainer').innerHTML = html;
+            }
+        }
+
+        async function submitReview(e) {
+            e.preventDefault();
+            const rating = document.getElementById('rating').value;
+            const comment = document.getElementById('comment').value;
+            const customerName = document.getElementById('reviewerName').value || 'زائر';
+            const res = await fetch(`/api/products/${productId}/reviews`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    rating,
+                    comment,
+                    customerName
+                })
+            });
+            if (res.ok) {
+                alert('شكراً لتقييمك!');
+                loadReviews();
+            } else alert('حدث خطأ');
+        }
+
+        function addToCart() {
+            // نحتاج اسم المنتج وسعره – يمكن جلبه من DOM أو من الـ API
+            const name = document.querySelector('h1').innerText;
+            const priceEl = document.querySelector('.price');
+            const price = parseFloat(priceEl.innerText);
+            let cart = localStorage.getItem('absi_cart');
+            cart = cart ? JSON.parse(cart) : [];
+            const existing = cart.find(i => i.productId === productId);
+            if (existing) existing.quantity++;
+            else cart.push({
+                productId,
+                name,
+                price,
+                quantity: 1
+            });
+            localStorage.setItem('absi_cart', JSON.stringify(cart));
+            alert('✅ تمت الإضافة إلى السلة');
+        }
+
+        loadProduct();
+        loadReviews();
+        window.submitReview = submitReview;
+        window.addToCart = addToCart;
+    </script>
+</body>
+
+</html>

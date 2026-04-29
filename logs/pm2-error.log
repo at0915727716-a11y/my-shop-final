@@ -1,0 +1,12 @@
+2026-04-26T12:09:35: Warning: connect.session() MemoryStore is not
+2026-04-26T12:09:35: designed for a production environment, as it will leak
+2026-04-26T12:09:35: memory, and will not scale past a single process.
+2026-04-26T12:19:15: Warning: connect.session() MemoryStore is not
+2026-04-26T12:19:15: designed for a production environment, as it will leak
+2026-04-26T12:19:15: memory, and will not scale past a single process.
+2026-04-26T12:29:57: Warning: connect.session() MemoryStore is not
+2026-04-26T12:29:57: designed for a production environment, as it will leak
+2026-04-26T12:29:57: memory, and will not scale past a single process.
+2026-04-26T12:40:17: Warning: connect.session() MemoryStore is not
+2026-04-26T12:40:17: designed for a production environment, as it will leak
+2026-04-26T12:40:17: memory, and will not scale past a single process.

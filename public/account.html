@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حسابي - Absi stor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f0f2f5;
+            direction: rtl;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+        }
+        
+        h1 {
+            color: #1a4a6f;
+            margin-bottom: 1rem;
+        }
+        
+        .order-card {
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-right: 4px solid #1a4a6f;
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .status-shipped {
+            background: #2a5298;
+            color: white;
+        }
+        
+        .status-delivered {
+            background: #27ae60;
+            color: white;
+        }
+        
+        button {
+            background: #e74c3c;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .login-msg {
+            text-align: center;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="accountContent"></div>
+
+    <script>
+        async function loadAccount() {
+            const userId = localStorage.getItem('userId');
+            const userName = localStorage.getItem('userName');
+            if (!userId) {
+                document.getElementById('accountContent').innerHTML = `
+                <div class="login-msg">
+                    <h2>🔐 الرجاء تسجيل الدخول</h2>
+                    <button onclick="location.href='/login.html'">تسجيل الدخول</button>
+                </div>`;
+                return;
+            }
+            // جلب الطلبات
+            const res = await fetch('/api/account/orders');
+            if (res.status === 401) {
+                localStorage.clear();
+                location.reload();
+                return;
+            }
+            const data = await res.json();
+            let html = `<h1><i class="fas fa-user-circle"></i> مرحباً ${userName}</h1>`;
+            if (data.success && data.data.length) {
+                html += `<h3>طلباتي السابقة (${data.data.length})</h3>`;
+                data.data.forEach(order => {
+                            let statusClass = '';
+                            if (order.status === 'قيد المراجعة') statusClass = 'status-pending';
+                            else if (order.status === 'تم التجهيز') statusClass = 'status-shipped';
+                            else if (order.status === 'تم التوصيل') statusClass = 'status-delivered';
+                            html += `<div class="order-card">
+                            <div><strong>رقم الطلب:</strong> ${order.orderId}</div>
+                            <div><strong>التاريخ:</strong> ${new Date(order.date).toLocaleDateString()}</div>
+                            <div><strong>الإجمالي:</strong> ${order.total} ريال</div>
+                            <div><strong>الحالة:</strong> <span class="order-status ${statusClass}">${order.status}</span></div>
+                            <details><summary>تفاصيل المنتجات</summary>
+                            <ul>${order.items.map(i => `<li>${i.name} × ${i.quantity} = ${i.price * i.quantity} ريال</li>`).join('')}</ul>
+                            </details>
+                         </div>`;
+            });
+        } else {
+            html += `<p>لا توجد طلبات سابقة.</p>`;
+        }
+        html += `<button onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>`;
+        document.getElementById('accountContent').innerHTML = html;
+    }
+    async function logout() {
+        await fetch('/api/logout', { method: 'POST' });
+        localStorage.clear();
+        window.location.href = '/shop.html';
+    }
+    loadAccount();
+    </script>
+</body>
+
+</html>

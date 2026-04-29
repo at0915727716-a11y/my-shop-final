@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>إتمام الشراء - Absi stor</title>
+    <!-- PayPal SDK (استبدل YOUR_CLIENT_ID بالمفتاح الحقيقي عند التفعيل) -->
+    <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD&disable-funding=card,credit"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+            background: #f8f9fa;
+            direction: rtl;
+            padding: 20px;
+            color: #2d3748;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1a4a6f;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #1a4a6f;
+            border-right: 4px solid #ffc107;
+            padding-right: 12px;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.1);
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .cart-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: left;
+            margin: 1rem 0;
+            padding-top: 1rem;
+            border-top: 2px solid #1a4a6f;
+        }
+        
+        .coupon-area {
+            display: flex;
+            gap: 10px;
+            margin: 1rem 0;
+        }
+        
+        .coupon-area input {
+            flex: 1;
+        }
+        
+        .btn {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        
+        .btn:hover {
+            background: #1e3c72;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #219a52;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+        }
+        
+        .whatsapp-btn {
+            background: #25D366;
+            margin-top: 1rem;
+        }
+        
+        .whatsapp-btn:hover {
+            background: #128C7E;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .success {
+            color: #27ae60;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .paypal-buttons {
+            margin-top: 1.5rem;
+        }
+        
+        hr {
+            margin: 1rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🏪 إتمام الشراء - Absi stor</h1>
+        <div class="checkout-grid">
+            <!-- قسم بيانات العميل -->
+            <div class="card">
+                <h2>📝 معلومات التوصيل</h2>
+                <div class="form-group">
+                    <label>الاسم الكامل *</label>
+                    <input type="text" id="fullName" placeholder="أحمد محمد">
+                </div>
+                <div class="form-group">
+                    <label>رقم الجوال *</label>
+                    <input type="tel" id="phone" placeholder="0912345678">
+                    <div class="error" id="phoneError">يرجى إدخال رقم جوال صحيح (10-12 رقم)</div>
+                </div>
+                <div class="form-group">
+                    <label>العنوان (الشارع، المدينة) *</label>
+                    <textarea id="address" rows="2" placeholder="طرابلس، شارع النصر، مبنى 5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني (اختياري، للإشعارات)</label>
+                    <input type="email" id="email" placeholder="example@domain.com">
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات إضافية (اختياري)</label>
+                    <textarea id="notes" rows="2" placeholder="أي تعليمات خاصة"></textarea>
+                </div>
+            </div>
+
+            <!-- قسم السلة والدفع -->
+            <div class="card">
+                <h2>🛒 سلة المشتريات</h2>
+                <div id="cartItemsList"></div>
+                <div class="cart-total" id="cartTotal">💰 الإجمالي: 0 ريال</div>
+
+                <!-- كوبون الخصم -->
+                <div class="coupon-area">
+                    <input type="text" id="couponCode" placeholder="كود الخصم (اختياري)">
+                    <button class="btn" onclick="applyCoupon()">تطبيق</button>
+                </div>
+                <div id="couponFeedback" class="success"></div>
+
+                <hr>
+
+                <!-- PayPal أزرار -->
+                <div id="paypal-button-container" class="paypal-buttons"></div>
+
+                <!-- بديل: إتمام الطلب عبر واتساب مباشر (بدون دفع إلكتروني) -->
+                <button id="whatsappOrderBtn" class="btn whatsapp-btn" onclick="submitWhatsAppOrder()">
+                <i class="fab fa-whatsapp"></i> إتمام الطلب عبر واتساب
+            </button>
+                <div class="error" id="orderError"></div>
+                <div class="success" id="orderSuccess"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let total = 0;
+        let discountApplied = 0;
+        let appliedCoupon = null;
+        let orderCreated = false;
+
+        // تحميل السلة من localStorage
+        function loadCart() {
+            const saved = localStorage.getItem('absi_cart');
+            if (!saved || JSON.parse(saved).length === 0) {
+                alert('السلة فارغة! سيتم تحويلك إلى المتجر.');
+                window.location.href = '/shop.html';
+                return;
+            }
+            cart = JSON.parse(saved);
+            calculateTotal();
+            displayCart();
+        }
+
+        function calculateTotal() {
+            total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            if (appliedCoupon) {
+                let disc = appliedCoupon.type === 'percentage' ? (total * appliedCoupon.value / 100) : appliedCoupon.value;
+                disc = Math.min(disc, total);
+                discountApplied = disc;
+            } else {
+                discountApplied = 0;
+            }
+        }
+
+        function displayCart() {
+            const container = document.getElementById('cartItemsList');
+            container.innerHTML = '';
+            cart.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                <span><strong>${item.name}</strong> × ${item.quantity}</span>
+                <span>${(item.price * item.quantity).toFixed(2)} ريال</span>
+            `;
+                container.appendChild(div);
+            });
+            const finalTotal = total - discountApplied;
+            document.getElementById('cartTotal').innerHTML = `💰 الإجمالي: ${finalTotal.toFixed(2)} ريال`;
+            if (discountApplied > 0) {
+                document.getElementById('cartTotal').innerHTML += ` <span style="color:#27ae60;">(تم خصم ${discountApplied.toFixed(2)} ريال)</span>`;
+            }
+        }
+
+        // تطبيق كوبون
+        async function applyCoupon() {
+            const code = document.getElementById('couponCode').value.trim();
+            if (!code) return;
+            try {
+                const res = await fetch('/api/validate-coupon', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        couponCode: code,
+                        cartTotal: total
+                    })
+                });
+                const data = await res.json();
+                if (data.valid) {
+                    appliedCoupon = {
+                        code: code,
+                        type: data.type,
+                        value: data.discount
+                    };
+                    discountApplied = data.discount;
+                    calculateTotal();
+                    displayCart();
+                    document.getElementById('couponFeedback').innerText = `✅ كود خصم صالح! تم خصم ${data.discount.toFixed(2)} ريال`;
+                    document.getElementById('couponFeedback').style.display = 'block';
+                    setTimeout(() => document.getElementById('couponFeedback').style.display = 'none', 3000);
+                } else {
+                    document.getElementById('couponFeedback').innerText = '❌ كود غير صالح أو منتهي';
+                    document.getElementById('couponFeedback').style.display = 'block';
+                    document.getElementById('couponFeedback').className = 'error';
+                    setTimeout(() => {
+                        document.getElementById('couponFeedback').style.display = 'none';
+                        document.getElementById('couponFeedback').className = 'success';
+                    }, 3000);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('خطأ في التحقق من الكوبون');
+            }
+        }
+
+        // دالة لإنشاء الطلب (تستخدم مرة للواتساب ومرة لـ PayPal)
+        async function createOrder(paymentMethod = 'whatsapp') {
+            const name = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const notes = document.getElementById('notes').value;
+
+            // التحقق من صحة البيانات
+            if (!name || !phone || !address) {
+                document.getElementById('orderError').innerText = 'يرجى ملء جميع الحقول المطلوبة';
+                document.getElementById('orderError').style.display = 'block';
+                setTimeout(() => document.getElementById('orderError').style.display = 'none', 3000);
+                return null;
+            }
+            if (!/^[0-9]{10,12}$/.test(phone)) {
+                document.getElementById('phoneError').style.display = 'block';
+                setTimeout(() => document.getElementById('phoneError').style.display = 'none', 3000);
+                return null;
+            }
+
+            const cartItems = cart.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity
+            }));
+            const payload = {
+                customerName: name,
+                customerPhone: phone,
+                customerAddress: address,
+                cartItems,
+                couponCode: appliedCoupon ? appliedCoupon.code : null,
+                customerEmail: email || null,
+                notes: notes || null
+            };
+
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    // مسح السلة بعد نجاح الطلب
+                    localStorage.removeItem('absi_cart');
+                    return {
+                        success: true,
+                        orderId: data.orderId,
+                        whatsappLink: data.whatsappLink
+                    };
+                } else {
+                    document.getElementById('orderError').innerText = data.error || 'حدث خطأ في الطلب';
+                    document.getElementById('orderError').style.display = 'block';
+                    setTimeout(() => document.getElementById('orderError').style.display = 'none', 3000);
+                    return null;
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('orderError').innerText = 'فشل الاتصال بالخادم';
+                document.getElementById('orderError').style.display = 'block';
+                setTimeout(() => document.getElementById('orderError').style.display = 'none', 3000);
+                return null;
+            }
+        }
+
+        // إتمام الطلب عبر واتساب (بدون دفع إلكتروني)
+        async function submitWhatsAppOrder() {
+            const result = await createOrder('whatsapp');
+            if (result && result.success) {
+                document.getElementById('orderSuccess').innerText = `✅ تم استلام طلبك رقم ${result.orderId}. سيتم فتح واتساب لإرسال التفاصيل.`;
+                document.getElementById('orderSuccess').style.display = 'block';
+                if (result.whatsappLink) {
+                    window.open(result.whatsappLink, '_blank');
+                }
+                setTimeout(() => {
+                    window.location.href = '/shop.html';
+                }, 5000);
+            }
+        }
+
+        // دالة PayPal
+        window.paypal.Buttons({
+            createOrder: async(data, actions) => {
+                // نحتاج أولاً إلى إنشاء الطلب المحلي والحصول على orderId (بدون دفع)
+                const name = document.getElementById('fullName').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const address = document.getElementById('address').value.trim();
+                if (!name || !phone || !address) {
+                    document.getElementById('orderError').innerText = 'يرجى ملء بيانات التوصيل أولاً';
+                    document.getElementById('orderError').style.display = 'block';
+                    setTimeout(() => document.getElementById('orderError').style.display = 'none', 3000);
+                    return null;
+                }
+                const cartItems = cart.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity
+                }));
+                const payload = {
+                    customerName: name,
+                    customerPhone: phone,
+                    customerAddress: address,
+                    cartItems,
+                    couponCode: appliedCoupon ? appliedCoupon.code : null,
+                    customerEmail: document.getElementById('email').value.trim() || null,
+                    total: total - discountApplied
+                };
+                // استدعاء endpoint إنشاء الطلب المسبق للدفع
+                const res = await fetch('/api/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const dataOrder = await res.json();
+                if (!dataOrder.success) {
+                    alert('فشل إنشاء الطلب: ' + dataOrder.error);
+                    return null;
+                }
+                // الآن إنشاء أمر PayPal
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: (total - discountApplied).toFixed(2),
+                            currency_code: 'USD'
+                        },
+                        description: `طلب من ${name} - ${dataOrder.orderId}`
+                    }]
+                });
+            },
+            onApprove: async(data, actions) => {
+                const capture = await actions.order.capture();
+                // تأكيد الدفع على الخادم
+                const confirmRes = await fetch('/api/confirm-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                            orderId: capture.id,
+                            paypalOrderId: capture.id
+                        }) // يجب ربطه بالطلب الحقيقي
+                });
+                const confirmData = await confirmRes.json();
+                if (confirmData.success) {
+                    localStorage.removeItem('absi_cart');
+                    document.getElementById('orderSuccess').innerText = '✅ تم الدفع بنجاح! سيتم تحويلك إلى المتجر.';
+                    document.getElementById('orderSuccess').style.display = 'block';
+                    if (confirmData.whatsappLink) window.open(confirmData.whatsappLink, '_blank');
+                    setTimeout(() => window.location.href = '/shop.html', 4000);
+                } else {
+                    alert('حدث خطأ في تأكيد الدفع');
+                }
+            },
+            onError: (err) => {
+                console.error(err);
+                alert('حدث خطأ في الدفع عبر PayPal');
+            }
+        }).render('#paypal-button-container');
+
+        // حفظ بيانات العميل محلياً لملء تلقائي مستقبلاً
+        function saveCustomerData() {
+            const name = document.getElementById('fullName').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const email = document.getElementById('email').value;
+            if (name) localStorage.setItem('checkout_name', name);
+            if (phone) localStorage.setItem('checkout_phone', phone);
+            if (address) localStorage.setItem('checkout_address', address);
+            if (email) localStorage.setItem('checkout_email', email);
+        }
+
+        function loadCustomerData() {
+            const savedName = localStorage.getItem('checkout_name');
+            const savedPhone = localStorage.getItem('checkout_phone');
+            const savedAddress = localStorage.getItem('checkout_address');
+            const savedEmail = localStorage.getItem('checkout_email');
+            if (savedName) document.getElementById('fullName').value = savedName;
+            if (savedPhone) document.getElementById('phone').value = savedPhone;
+            if (savedAddress) document.getElementById('address').value = savedAddress;
+            if (savedEmail) document.getElementById('email').value = savedEmail;
+        }
+
+        // روابط للحفظ التلقائي عند تغيير الحقول
+        document.getElementById('fullName').addEventListener('change', saveCustomerData);
+        document.getElementById('phone').addEventListener('change', saveCustomerData);
+        document.getElementById('address').addEventListener('change', saveCustomerData);
+        document.getElementById('email').addEventListener('change', saveCustomerData);
+
+        // تهيئة الصفحة
+        loadCart();
+        loadCustomerData();
+        window.applyCoupon = applyCoupon;
+        window.submitWhatsAppOrder = submitWhatsAppOrder;
+    </script>
+    <!-- إضافة أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</body>
+
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المتجر في صيانة - Absi stor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #e4e8f0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            direction: rtl;
+        }
+        
+        .maintenance-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 32px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        h1 {
+            color: #1a4a6f;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="maintenance-box">
+        <div class="icon">🔧🛠️</div>
+        <h1>المتجر في صيانة</h1>
+        <p id="maintenanceMessage">نعتذر للإزعاج، المتجر مغلق مؤقتاً للصيانة. سيعود قريباً.</p>
+        <p>شكراً لتفهمك.</p>
+    </div>
+    <script>
+        // يمكن جلب الرسالة من الـ API إذا أردت
+        async function loadMessage() {
+            try {
+                const res = await fetch('/api/admin/settings');
+                const data = await res.json();
+                if (data.data && data.data.maintenanceMessage) {
+                    document.getElementById('maintenanceMessage').innerText = data.data.maintenanceMessage;
+                }
+            } catch (e) {}
+        }
+        loadMessage();
+    </script>
+</body>
+
+</html>
