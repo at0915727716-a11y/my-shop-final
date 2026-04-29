@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>لوحة التحكم الاحترافية - Absi stor</title>
-    <!-- Font Awesome Icons (free) -->
+    <title>لوحة التحكم - Absi stor (متجاوبة)</title>
+    <!-- Font Awesome (للأيقونات) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Chart.js -->
+    <!-- Chart.js (للإحصائيات) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -17,39 +17,50 @@
         }
         
         body {
-            font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+            font-family: 'Segoe UI', 'Tajawal', Tahoma, Arial, sans-serif;
             background: #f0f2f5;
             direction: rtl;
             color: #2d3748;
         }
-        /* Layout */
+        /* ========== الهيكل الأساسي ========== */
         
         .dashboard {
             display: flex;
             min-height: 100vh;
         }
+        /* القائمة الجانبية (للحواسيب) */
         
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #0f2b3d 0%, #1a4a6f 100%);
             color: white;
-            padding: 1.5rem;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
             position: fixed;
             height: 100%;
             overflow-y: auto;
             z-index: 100;
         }
         
-        .sidebar .logo {
+        .sidebar-header {
+            padding: 1.5rem;
             text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-            font-weight: bold;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .sidebar .logo span {
+        .sidebar-header h2 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .sidebar-header span {
             color: #ffc107;
+        }
+        
+        .sidebar nav {
+            flex: 1;
+            padding: 1rem 0;
         }
         
         .sidebar nav ul {
@@ -57,11 +68,10 @@
         }
         
         .sidebar nav li {
-            padding: 12px 16px;
-            margin: 5px 0;
-            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 0;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.2s;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -76,87 +86,109 @@
         .sidebar nav li:hover,
         .sidebar nav li.active {
             background: #2a5298;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+        /* منطقة المحتوى الرئيسية */
         
         .main-content {
             flex: 1;
             margin-right: 280px;
             padding: 1.5rem;
+            transition: margin-right 0.3s ease;
         }
-        /* Cards */
+        /* زر القائمة للهواتف (يظهر فقط في الشاشات الصغيرة) */
+        
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: #1a4a6f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 30px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        /* ========== البطاقات الإحصائية ========== */
         
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
         
         .stat-card {
             background: white;
-            border-radius: 20px;
             padding: 1.2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-radius: 24px;
             text-align: center;
-            transition: 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
         }
         
         .stat-card h3 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: #1a4a6f;
             margin-bottom: 0.5rem;
         }
+        /* ========== الجداول (قابلة للتمرير أفقياً) ========== */
         
-        .stat-card p {
-            color: #718096;
-        }
-        /* Tables */
-        
-        .data-table {
-            width: 100%;
+        .table-responsive {
+            overflow-x: auto;
             background: white;
             border-radius: 16px;
-            overflow-x: auto;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
         }
         
-        .data-table table {
+        table {
             width: 100%;
             border-collapse: collapse;
             min-width: 600px;
         }
         
-        .data-table th,
-        .data-table td {
+        th,
+        td {
             padding: 12px 15px;
             text-align: right;
             border-bottom: 1px solid #e2e8f0;
         }
         
-        .data-table th {
+        th {
             background: #e9ecef;
             font-weight: bold;
             color: #1a4a6f;
         }
         
-        .data-table tr:hover {
+        tr:hover td {
             background: #f8f9fa;
         }
+        /* ========== الأزرار والعناصر ========== */
         
         button {
             background: #2a5298;
             color: white;
             border: none;
             padding: 6px 12px;
-            border-radius: 8px;
+            border-radius: 30px;
             cursor: pointer;
             transition: 0.2s;
             font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         
         button i {
-            margin-left: 5px;
+            font-size: 0.9rem;
         }
         
         button:hover {
@@ -178,9 +210,42 @@
         .btn-success:hover {
             background: #219a52;
         }
+        /* تنبيهات المخزون */
         
-        .btn-warning {
-            background: #f39c12;
+        .alert-item {
+            background: #fef3c7;
+            border-right: 4px solid #f59e0b;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        /* المودالات (النوافذ المنبثقة) */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow-y: auto;
         }
         
         .form-group {
@@ -198,155 +263,163 @@
         .form-group select {
             width: 100%;
             padding: 0.75rem;
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
             border-radius: 12px;
+            font-size: 1rem;
         }
+        /* ========== استعلامات الوسائط (للهواتف والأجهزة اللوحية) ========== */
         
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 24px;
-            width: 90%;
-            max-width: 550px;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        
-        .close-modal {
-            float: left;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        
-        img.preview {
-            max-width: 100px;
-            max-height: 100px;
-            margin-top: 10px;
-            border-radius: 8px;
-        }
-        
-        @media (max-width: 768px) {
+        @media (max-width: 992px) {
             .sidebar {
-                width: 80px;
-                padding: 1rem;
+                transform: translateX(100%);
+                right: 0;
+                position: fixed;
+                width: 260px;
             }
-            .sidebar .logo span,
-            .sidebar nav li span:not(i) {
-                display: none;
-            }
-            .sidebar nav li i {
-                font-size: 1.3rem;
-                margin: 0;
+            .sidebar.open {
+                transform: translateX(0);
             }
             .main-content {
-                margin-right: 80px;
+                margin-right: 0;
+                padding-top: 4rem;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            /* تعديل حجم الجداول */
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            th,
+            td {
+                padding: 8px 10px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 1rem;
+            }
+            .stat-card h3 {
+                font-size: 1.4rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 1rem;
             }
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
             }
+            .alert-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .modal-content {
+                width: 95%;
+            }
+        }
+        /* --- إضافات بسيطة --- */
+        
+        .close-modal {
+            float: left;
+            font-size: 1.3rem;
+            cursor: pointer;
         }
         
-        .alert-item {
-            background: #fef3c7;
-            border-right: 4px solid #f59e0b;
-            padding: 12px;
-            margin-bottom: 10px;
+        img.preview {
+            max-width: 80px;
+            max-height: 80px;
+            margin-top: 8px;
             border-radius: 8px;
+        }
+        
+        hr {
+            margin: 1rem 0;
         }
     </style>
 </head>
 
 <body>
+
+    <!-- زر القائمة للهواتف -->
+    <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i> القائمة</button>
+
     <div class="dashboard">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">Absi<span>stor</span></div>
+        <!-- القائمة الجانبية -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Absi<span>stor</span></h2>
+            </div>
             <nav>
                 <ul>
-                    <li data-section="products" class="active"><i class="fas fa-box"></i> <span>المنتجات</span></li>
-                    <li data-section="orders"><i class="fas fa-shopping-cart"></i> <span>الطلبات</span></li>
-                    <li data-section="coupons"><i class="fas fa-ticket-alt"></i> <span>الكوبونات</span></li>
-                    <li data-section="alerts"><i class="fas fa-exclamation-triangle"></i> <span>التنبيهات</span></li>
-                    <li data-section="stats"><i class="fas fa-chart-line"></i> <span>الإحصائيات</span></li>
-                    <li data-section="users"><i class="fas fa-users"></i> <span>المستخدمين</span></li>
-                    <li data-section="settings"><i class="fas fa-cog"></i> <span>الإعدادات</span></li>
+                    <li data-section="products" class="active"><i class="fas fa-box"></i> المنتجات</li>
+                    <li data-section="orders"><i class="fas fa-shopping-cart"></i> الطلبات</li>
+                    <li data-section="coupons"><i class="fas fa-ticket-alt"></i> الكوبونات</li>
+                    <li data-section="alerts"><i class="fas fa-exclamation-triangle"></i> التنبيهات</li>
+                    <li data-section="stats"><i class="fas fa-chart-line"></i> الإحصائيات</li>
+                    <li data-section="users"><i class="fas fa-users"></i> المستخدمين</li>
+                    <li data-section="settings"><i class="fas fa-cog"></i> الإعدادات</li>
                 </ul>
             </nav>
-            <div style="margin-top: 2rem; text-align: center;">
-                <button onclick="logout()" style="background: #e74c3c;"><i class="fas fa-sign-out-alt"></i> خروج</button>
+            <div style="padding: 1rem; text-align: center;">
+                <button onclick="logout()" style="background: #e74c3c; width: 90%;"><i class="fas fa-sign-out-alt"></i> خروج</button>
             </div>
         </div>
 
-        <!-- Main Content -->
+        <!-- المحتوى الرئيسي -->
         <div class="main-content">
-            <!-- Stats Cards (top) -->
+            <!-- الإحصائيات السريعة (تظهر في الأعلى) -->
             <div class="stats-grid" id="statsCards"></div>
 
-            <!-- Products Section -->
+            <!-- أقسام المحتوى -->
             <div id="productsSection" class="section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem;">
                     <h2><i class="fas fa-box"></i> المنتجات</h2>
                     <button onclick="openProductModal()"><i class="fas fa-plus"></i> إضافة منتج</button>
                 </div>
-                <div class="data-table" id="productsTable"></div>
+                <div class="table-responsive" id="productsTable"></div>
             </div>
 
-            <!-- Orders Section -->
             <div id="ordersSection" class="section" style="display:none;">
                 <h2><i class="fas fa-shopping-cart"></i> الطلبات</h2>
                 <div style="margin: 1rem 0;">
                     <button onclick="exportOrdersCSV()"><i class="fas fa-file-csv"></i> تصدير CSV</button>
                 </div>
-                <div class="data-table" id="ordersTable"></div>
+                <div class="table-responsive" id="ordersTable"></div>
             </div>
 
-            <!-- Coupons Section -->
             <div id="couponsSection" class="section" style="display:none;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem;">
                     <h2><i class="fas fa-ticket-alt"></i> كوبونات الخصم</h2>
                     <button onclick="openCouponModal()"><i class="fas fa-plus"></i> إضافة كوبون</button>
                 </div>
-                <div class="data-table" id="couponsTable"></div>
+                <div class="table-responsive" id="couponsTable"></div>
             </div>
 
-            <!-- Alerts Section -->
             <div id="alertsSection" class="section" style="display:none;">
                 <h2><i class="fas fa-exclamation-triangle"></i> تنبيهات نقص المخزون</h2>
                 <div id="alertsList"></div>
             </div>
 
-            <!-- Stats Section (Detailed) -->
             <div id="statsSection" class="section" style="display:none;">
                 <h2>📊 إحصائيات متقدمة</h2>
-                <div style="margin-top: 1rem;">
+                <div style="background: white; padding: 1rem; border-radius: 24px; margin-top: 1rem;">
                     <canvas id="topProductsChart" width="400" height="200" style="max-width:100%; height:auto;"></canvas>
                 </div>
-                <div class="data-table" style="margin-top: 2rem;" id="topProductsList"></div>
+                <div class="table-responsive" style="margin-top: 1.5rem;">
+                    <div id="topProductsList"></div>
+                </div>
             </div>
 
-            <!-- Users Section -->
             <div id="usersSection" class="section" style="display:none;">
                 <h2><i class="fas fa-users"></i> العملاء المسجلون</h2>
-                <div class="data-table" id="usersTable"></div>
+                <div class="table-responsive" id="usersTable"></div>
             </div>
 
-            <!-- Settings Section -->
             <div id="settingsSection" class="section" style="display:none;">
                 <h2>⚙️ إعدادات المتجر</h2>
-                <div style="background: white; padding: 1.5rem; border-radius: 20px;">
+                <div style="background: white; padding: 1.5rem; border-radius: 24px;">
                     <div class="form-group">
                         <label><i class="fas fa-wrench"></i> وضع الصيانة</label>
                         <select id="maintenanceMode">
@@ -364,28 +437,26 @@
         </div>
     </div>
 
-    <!-- Modal for Product (Add/Edit) -->
+    <!-- Modal إضافة/تعديل منتج -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeProductModal()">&times;</span>
             <h3 id="productModalTitle">إضافة منتج</h3>
-            <form id="productForm">
-                <div class="form-group"><label>اسم المنتج *</label><input type="text" id="pName" required></div>
-                <div class="form-group"><label>السعر (ريال) *</label><input type="number" id="pPrice" step="0.01" required></div>
-                <div class="form-group"><label>المخزون *</label><input type="number" id="pStock" required></div>
-                <div class="form-group"><label>الوصف</label><textarea id="pDesc" rows="3"></textarea></div>
-                <div class="form-group"><label>القسم</label><input type="text" id="pCategory" placeholder="عام"></div>
-                <div class="form-group"><label>نسبة الخصم (%)</label><input type="number" id="pDiscount" step="0.1" value="0"></div>
-                <div class="form-group"><label>صورة المنتج</label><input type="file" id="pImage" accept="image/*">
-                    <img id="pImagePreview" class="preview" style="display:none;">
-                </div>
-                <input type="hidden" id="editId">
-                <button type="button" onclick="saveProduct()" class="btn-success">حفظ</button>
-            </form>
+            <div class="form-group"><label>اسم المنتج</label><input type="text" id="pName" required></div>
+            <div class="form-group"><label>السعر (ريال)</label><input type="number" id="pPrice" step="0.01" required></div>
+            <div class="form-group"><label>المخزون</label><input type="number" id="pStock" required></div>
+            <div class="form-group"><label>الوصف</label><textarea id="pDesc" rows="3"></textarea></div>
+            <div class="form-group"><label>القسم</label><input type="text" id="pCategory" placeholder="عام"></div>
+            <div class="form-group"><label>نسبة الخصم (%)</label><input type="number" id="pDiscount" step="0.1" value="0"></div>
+            <div class="form-group"><label>صورة المنتج</label><input type="file" id="pImage" accept="image/*">
+                <img id="pImagePreview" class="preview" style="display:none;">
+            </div>
+            <input type="hidden" id="editId">
+            <button onclick="saveProduct()" class="btn-success">حفظ</button>
         </div>
     </div>
 
-    <!-- Modal for Coupon -->
+    <!-- Modal إضافة كوبون -->
     <div id="couponModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeCouponModal()">&times;</span>
@@ -397,14 +468,14 @@
             <div class="form-group"><label>القيمة</label><input type="number" id="cValue" step="0.01"></div>
             <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="cExpiry"></div>
             <div class="form-group"><label>حد الاستخدام</label><input type="number" id="cLimit" value="1"></div>
-            <div class="form-group"><label>الحد الأدنى للطلب (ريال)</label><input type="number" id="cMin" value="0"></div>
+            <div class="form-group"><label>الحد الأدنى للطلب</label><input type="number" id="cMin" value="0"></div>
             <div class="form-group"><label><input type="checkbox" id="cNewOnly"> لأول عميل فقط</label></div>
             <button onclick="addCoupon()" class="btn-success">إضافة</button>
         </div>
     </div>
 
     <script>
-        // Global data
+        // Global variables
         let products = [],
             orders = [],
             coupons = [],
@@ -419,7 +490,7 @@
             return res.json();
         }
 
-        // Load all sections data
+        // Data loading
         async function loadProducts() {
             const data = await fetchAPI('/api/products');
             products = data.data;
@@ -443,7 +514,6 @@
             displayAlerts();
         }
         async function loadUsers() {
-            // Assuming /api/admin/users exists (we may need to add it in server.js – but implement if exists)
             try {
                 const data = await fetchAPI('/api/admin/users');
                 users = data.data;
@@ -463,19 +533,18 @@
         async function loadStats() {
             const data = await fetchAPI('/api/admin/stats');
             if (data.data) {
-                // stats cards already updated via updateStats()
                 if (data.data.topProducts) {
                     topProductsData = data.data.topProducts;
                     drawTopProductsChart();
                     displayTopProductsList();
                 }
             }
+            updateStats();
         }
 
         function updateStats() {
             const totalSales = orders.reduce((s, o) => s + o.total, 0);
-            const statsDiv = document.getElementById('statsCards');
-            statsDiv.innerHTML = `
+            document.getElementById('statsCards').innerHTML = `
             <div class="stat-card"><h3>${products.length}</h3><p>المنتجات</p></div>
             <div class="stat-card"><h3>${orders.length}</h3><p>الطلبات</p></div>
             <div class="stat-card"><h3>${totalSales.toFixed(2)}</h3><p>إجمالي المبيعات (ريال)</p></div>
@@ -483,11 +552,9 @@
         `;
         }
 
-        // ================== Products ==================
+        // عرض المنتجات
         function displayProducts() {
-            let html = `<table>
-            <thead><tr><th>الصورة</th><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الخصم</th><th>الإجراءات</th></tr></thead>
-            <tbody>`;
+            let html = `<table><thead><tr><th>الصورة</th><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الخصم</th><th>الإجراءات</th></tr></thead><tbody>`;
             products.forEach(p => {
                         html += `<tr>
                         <td>${p.imageUrl ? `<img src="${p.imageUrl}" width="50" height="50" style="object-fit:cover; border-radius:8px;">` : '-'}</td>
@@ -499,7 +566,7 @@
                             <button onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i> تعديل</button>
                             <button class="btn-danger" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i> حذف</button>
                         </td>
-                    </tr>`;
+                     </tr>`;
         });
         html += `</tbody></table>`;
         document.getElementById('productsTable').innerHTML = html;
@@ -531,7 +598,6 @@
         document.getElementById('productModal').style.display = 'flex';
     }
     function closeProductModal() { document.getElementById('productModal').style.display = 'none'; }
-
     async function saveProduct() {
         const id = document.getElementById('editId').value;
         const formData = new FormData();
@@ -549,15 +615,10 @@
         if(res.ok) { closeProductModal(); loadProducts(); }
         else alert('خطأ في حفظ المنتج');
     }
-    async function deleteProduct(id) {
-        if(confirm('حذف المنتج نهائياً؟')) {
-            await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-            loadProducts();
-        }
-    }
+    async function deleteProduct(id) { if(confirm('حذف المنتج نهائياً؟')) { await fetch(`/api/admin/products/${id}`, { method: 'DELETE' }); loadProducts(); } }
     function editProduct(id) { openProductModal(id); }
 
-    // ================== Orders ==================
+    // عرض الطلبات
     function displayOrders() {
         let html = `<thead><tr><th>رقم الطلب</th><th>العميل</th><th>الجوال</th><th>العنوان</th><th>الإجمالي</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody>`;
         orders.forEach(o => {
@@ -567,32 +628,26 @@
                         <td>${o.customerPhone}</td>
                         <td>${o.customerAddress}</td>
                         <td>${o.total}</td>
-                        <td>
-                            <select onchange="updateOrderStatus('${o.orderId}', this.value)">
-                                <option value="قيد المراجعة" ${o.status==='قيد المراجعة'?'selected':''}>قيد المراجعة</option>
-                                <option value="تم التجهيز" ${o.status==='تم التجهيز'?'selected':''}>تم التجهيز</option>
-                                <option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option>
-                            </select>
-                        </td>
+                        <td><select onchange="updateOrderStatus('${o.orderId}', this.value)">
+                            <option value="قيد المراجعة" ${o.status==='قيد المراجعة'?'selected':''}>قيد المراجعة</option>
+                            <option value="تم التجهيز" ${o.status==='تم التجهيز'?'selected':''}>تم التجهيز</option>
+                            <option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option>
+                        </select></td>
                         <td>${new Date(o.date).toLocaleDateString()}</td>
                         <td><button onclick="generateInvoice('${o.orderId}')"><i class="fas fa-file-pdf"></i> PDF</button></td>
-                    </tr>`;
+                     </tr>`;
         });
         html += `</tbody>`;
-        document.getElementById('ordersTable').innerHTML = `<div class="data-table"><table>${html}</table></div>`;
+        document.getElementById('ordersTable').innerHTML = html;
     }
     async function updateOrderStatus(orderId, status) {
-        await fetch(`/api/admin/orders/${orderId}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
+        await fetch(`/api/admin/orders/${orderId}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
         loadOrders();
     }
     function generateInvoice(orderId) { window.open(`/api/orders/${orderId}/invoice`, '_blank'); }
     function exportOrdersCSV() { window.location.href = '/api/admin/export-orders'; }
 
-    // ================== Coupons ==================
+    // الكوبونات
     function displayCoupons() {
         let html = `<thead><tr><th>الكود</th><th>النوع</th><th>القيمة</th><th>الصلاحية</th><th>الاستخدام</th><th>إجراء</th></tr></thead><tbody>`;
         coupons.forEach(c => {
@@ -603,10 +658,10 @@
                         <td>${new Date(c.expiryDate).toLocaleDateString()}</td>
                         <td>${c.usedCount}/${c.usageLimit}</td>
                         <td><button class="btn-danger" onclick="deleteCoupon('${c.id}')">حذف</button></td>
-                    </tr>`;
+                     </tr>`;
         });
         html += `</tbody>`;
-        document.getElementById('couponsTable').innerHTML = `<div class="data-table"><table>${html}</table></div>`;
+        document.getElementById('couponsTable').innerHTML = html;
     }
     function openCouponModal() { document.getElementById('couponModal').style.display = 'flex'; }
     function closeCouponModal() { document.getElementById('couponModal').style.display = 'none'; }
@@ -616,31 +671,19 @@
             type: document.getElementById('cType').value,
             value: parseFloat(document.getElementById('cValue').value),
             expiryDate: document.getElementById('cExpiry').value,
-            usageLimit: parseInt(document.getElementById('cLimit').value),
-            minCartAmount: parseFloat(document.getElementById('cMin').value),
+            usageLimit: parseInt(document.getElementById('cLimit').value) || 1,
+            minCartAmount: parseFloat(document.getElementById('cMin').value) || 0,
             newCustomerOnly: document.getElementById('cNewOnly').checked
         };
-        const res = await fetch('/api/admin/coupons', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(coupon)
-        });
+        const res = await fetch('/api/admin/coupons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(coupon) });
         if(res.ok) { closeCouponModal(); loadCoupons(); }
-        else alert('خطأ');
+        else alert('خطأ في إضافة الكوبون');
     }
-    async function deleteCoupon(id) {
-        if(confirm('حذف الكوبون؟')) {
-            await fetch(`/api/admin/coupons/${id}`, { method: 'DELETE' });
-            loadCoupons();
-        }
-    }
+    async function deleteCoupon(id) { if(confirm('حذف الكوبون؟')) { await fetch(`/api/admin/coupons/${id}`, { method: 'DELETE' }); loadCoupons(); } }
 
-    // ================== Alerts ==================
+    // التنبيهات
     function displayAlerts() {
-        if(alerts.length===0) {
-            document.getElementById('alertsList').innerHTML = '<div class="alert-item" style="background:#e8f5e9;">✅ لا توجد تنبيهات</div>';
-            return;
-        }
+        if(alerts.length===0) { document.getElementById('alertsList').innerHTML = '<div class="alert-item" style="background:#e8f5e9;">✅ لا توجد تنبيهات</div>'; return; }
         let html = '';
         alerts.forEach(a => {
             html += `<div class="alert-item">
@@ -650,12 +693,9 @@
         });
         document.getElementById('alertsList').innerHTML = html;
     }
-    async function deleteAlert(productId) {
-        await fetch(`/api/admin/alerts/${productId}`, { method: 'DELETE' });
-        loadAlerts();
-    }
+    async function deleteAlert(productId) { await fetch(`/api/admin/alerts/${productId}`, { method: 'DELETE' }); loadAlerts(); }
 
-    // ================== Stats & Charts ==================
+    // الإحصائيات والرسوم البيانية
     function drawTopProductsChart() {
         const ctx = document.getElementById('topProductsChart').getContext('2d');
         if(window.topChart) window.topChart.destroy();
@@ -664,77 +704,70 @@
                 type: 'bar',
                 data: {
                     labels: topProductsData.map(p=>p._id),
-                    datasets: [{
-                        label: 'عدد المبيعات',
-                        data: topProductsData.map(p=>p.totalSold),
-                        backgroundColor: '#2a5298',
-                        borderRadius: 8
-                    }]
+                    datasets: [{ label: 'عدد المبيعات', data: topProductsData.map(p=>p.totalSold), backgroundColor: '#2a5298', borderRadius: 8 }]
                 },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+                options: { responsive: true, maintainAspectRatio: true }
             });
         }
     }
     function displayTopProductsList() {
         let html = `<table><thead><tr><th>المنتج</th><th>الكمية المباعة</th></tr></thead><tbody>`;
-        topProductsData.forEach(p => {
-            html += `<tr><td>${p._id}</td><td>${p.totalSold}</td></tr>`;
-        });
+        topProductsData.forEach(p => { html += `<tr><td>${p._id}</td><td>${p.totalSold}</td></tr>`; });
         html += `</tbody></table>`;
         document.getElementById('topProductsList').innerHTML = html;
     }
 
-    // ================== Users ==================
+    // المستخدمين
     function displayUsers() {
-        if(users.length===0) {
-            document.getElementById('usersTable').innerHTML = '<div class="data-table">لا يوجد مستخدمون مسجلون</div>';
-            return;
-        }
+        if(users.length===0) { document.getElementById('usersTable').innerHTML = '<div class="table-responsive">لا يوجد مستخدمون مسجلون</div>'; return; }
         let html = `<thead><tr><th>اسم المستخدم</th><th>البريد الإلكتروني</th><th>تاريخ التسجيل</th></tr></thead><tbody>`;
         users.forEach(u => {
             html += `<tr><td>${u.username}</td><td>${u.email}</td><td>${new Date(u.createdAt).toLocaleDateString()}</td></tr>`;
         });
         html += `</tbody>`;
-        document.getElementById('usersTable').innerHTML = `<div class="data-table"><table>${html}</table></div>`;
+        document.getElementById('usersTable').innerHTML = html;
     }
 
-    // ================== Settings ==================
+    // الإعدادات
     async function updateSettings() {
         const maintenance = document.getElementById('maintenanceMode').value === 'true';
         const msg = document.getElementById('maintenanceMsg').value;
-        await fetch('/api/admin/settings', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ maintenance, maintenanceMessage: msg })
-        });
+        await fetch('/api/admin/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ maintenance, maintenanceMessage: msg }) });
         alert('تم حفظ الإعدادات');
     }
 
-    // ================== Logout ==================
+    // تسجيل الخروج
     async function logout() {
         await fetch('/api/admin/logout', { method: 'POST' });
         window.location.href = '/login.html';
     }
 
-    // ================== Tabs Navigation ==================
+    // التنقل بين الأقسام (تبويب)
     function showSection(sectionId) {
         document.querySelectorAll('.section').forEach(sec => sec.style.display = 'none');
         document.getElementById(sectionId + 'Section').style.display = 'block';
         document.querySelectorAll('.sidebar nav li').forEach(li => li.classList.remove('active'));
         document.querySelector(`.sidebar nav li[data-section="${sectionId}"]`).classList.add('active');
+        if(sectionId === 'stats') loadStats();
+        if(sectionId === 'users') loadUsers();
     }
 
-    // Event listeners for sidebar
+    // إظهار/إخفاء القائمة الجانبية في الهواتف
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    if(menuToggle) {
+        menuToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); });
+    }
+    // إغلاق القائمة عند النقر على رابط في الهواتف (تلقائي)
     document.querySelectorAll('.sidebar nav li').forEach(li => {
         li.addEventListener('click', () => {
             const section = li.getAttribute('data-section');
             showSection(section);
-            if(section === 'stats') { loadStats(); }
-            if(section === 'users') { loadUsers(); }
+            if(window.innerWidth <= 992) sidebar.classList.remove('open');
         });
     });
 
-    // Initial load
+    // تحميل البيانات الأولية
     (async function init() {
         await loadProducts();
         await loadOrders();
@@ -744,11 +777,10 @@
         await loadStats();
         await loadUsers();
         showSection('products');
-        // Auto refresh stats every 30 seconds
         setInterval(() => { loadStats(); loadOrders(); loadProducts(); }, 30000);
     })();
 
-    // Expose globals for inline onclick
+    // ربط الوظائف العامة
     window.openProductModal = openProductModal;
     window.closeProductModal = closeProductModal;
     window.saveProduct = saveProduct;
