@@ -18,6 +18,16 @@ const { body, validationResult } = require('express-validator');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 
+// ========== Cloudinary ==========
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 // ========== Import Models ==========
 const Product = require('./models/Product');
 const Order = require('./models/Order');
@@ -26,7 +36,7 @@ const Coupon = require('./models/Coupon');
 const Alert = require('./models/Alert');
 const Review = require('./models/Review');
 const Settings = require('./models/Settings');
-const Admin = require('./models/Admin'); // نموذج المدير
+const Admin = require('./models/Admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -69,6 +79,7 @@ if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
 if (!fs.existsSync(logsPath)) fs.mkdirSync(logsPath, { recursive: true });
 
 // ========== Security Middleware ==========
+app.set('trust proxy', 1);  // حل تحذير X-Forwarded-For
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(mongoSanitize());
 app.use(xss());
@@ -79,13 +90,13 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 app.use(morgan('combined', { stream: fs.createWriteStream(path.join(logsPath, 'access.log'), { flags: 'a' }) }));
 
 // Rate Limiting
-app.set('trust proxy', 1);
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
     message: { error: 'طلبات كثيرة، حاول لاحقاً' }
 });
 app.use('/api/', globalLimiter);
+
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
@@ -122,13 +133,17 @@ const sendEmail = async (to, subject, html) => {
     } catch (err) { console.error('Email error:', err); }
 };
 
-// ========== Multer Storage for Product Images ==========
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadsPath),
-    filename: (req, file, cb) => cb(null, `product-${Date.now()}-${Math.random().toString(36).substring(7)}${path.extname(file.originalname)}`)
+// ========== Multer Storage for Product Images (Cloudinary) ==========
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'absi-stor',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [{ width: 500, height: 500, crop: 'limit' }]
+    }
 });
 const upload = multer({
-    storage,
+    storage: storage,
     limits: { fileSize: 2 * 1024 * 1024 },
     fileFilter: (req, file, cb) => cb(null, ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(file.mimetype))
 });
@@ -181,7 +196,8 @@ app.post('/api/admin/products', isAdmin, upload.single('productImage'), validate
             description: description || '',
             category: category || 'عام',
             discountPercent: parseFloat(discountPercent) || 0,
-            imageUrl: req.file ? `/uploads/${req.file.filename}` : null
+            imageUrl: req.file ? req.file.path : null,   // Cloudinary يعيد المسار الكامل للصورة
+            createdAt: new Date().toISOString()
         });
         await newProduct.save();
         res.json({ success: true, data: newProduct });
@@ -197,11 +213,12 @@ app.put('/api/admin/products/:id', isAdmin, upload.single('productImage'), async
             if (req.body[field] !== undefined) product[field] = req.body[field];
         });
         if (req.file) {
+            // حذف الصورة القديمة من Cloudinary (اختياري)
             if (product.imageUrl) {
-                const oldPath = path.join(uploadsPath, path.basename(product.imageUrl));
-                if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+                const publicId = product.imageUrl.split('/').slice(-2).join('/').split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
             }
-            product.imageUrl = `/uploads/${req.file.filename}`;
+            product.imageUrl = req.file.path;
         }
         await product.save();
         res.json({ success: true, data: product });
@@ -213,15 +230,16 @@ app.delete('/api/admin/products/:id', isAdmin, async (req, res) => {
         const product = await Product.findOne({ id: req.params.id });
         if (!product) return res.status(404).json({ error: 'المنتج غير موجود' });
         if (product.imageUrl) {
-            const imagePath = path.join(uploadsPath, path.basename(product.imageUrl));
-            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+            // حذف الصورة من Cloudinary
+            const publicId = product.imageUrl.split('/').slice(-2).join('/').split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
         }
         await Product.deleteOne({ id: req.params.id });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ========== 3. Create Order ==========
+// ========== 3. Create Order (with Coupons, WhatsApp, Email) ==========
 app.post('/api/orders', [
     body('customerName').notEmpty(),
     body('customerPhone').notEmpty(),
@@ -307,7 +325,7 @@ app.post('/api/orders', [
     }
 });
 
-// ========== 4. Admin Authentication ==========
+// ========== 4. Admin Authentication (using MongoDB Admin model) ==========
 app.post('/api/admin/login', async (req, res) => {
     const { username, password } = req.body;
     const admin = await Admin.findOne({ username });
@@ -318,10 +336,7 @@ app.post('/api/admin/login', async (req, res) => {
         res.status(401).json({ error: 'بيانات غير صحيحة' });
     }
 });
-app.post('/api/admin/logout', (req, res) => {
-    req.session.destroy();
-    res.json({ success: true });
-});
+app.post('/api/admin/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
 
 // ========== 5. Admin Order Management ==========
 app.get('/api/admin/orders', isAdmin, async (req, res) => {
@@ -427,9 +442,7 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
             { $limit: 5 }
         ]);
         res.json({ success: true, data: { totalSales, totalOrders, totalProducts, lowStock, topProducts } });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ========== 12. Users Management (Admin) ==========
@@ -437,9 +450,7 @@ app.get('/api/admin/users', isAdmin, async (req, res) => {
     try {
         const users = await User.find().select('-passwordHash').sort({ createdAt: -1 });
         res.json({ success: true, data: users });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ========== 13. SEO: Sitemap.xml ==========
