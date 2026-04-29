@@ -26,7 +26,7 @@ const Coupon = require('./models/Coupon');
 const Alert = require('./models/Alert');
 const Review = require('./models/Review');
 const Settings = require('./models/Settings');
-const Admin = require('./models/Admin');           // نموذج المدير
+const Admin = require('./models/Admin'); // نموذج المدير
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,7 +40,6 @@ const connectWithRetry = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('✅ MongoDB Connected Successfully');
-        // تهيئة المدير الافتراضي إذا لم يكن موجوداً
         await initAdmin();
     } catch (err) {
         console.error('❌ MongoDB Connection Error:', err.message);
@@ -80,13 +79,13 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 app.use(morgan('combined', { stream: fs.createWriteStream(path.join(logsPath, 'access.log'), { flags: 'a' }) }));
 
 // Rate Limiting
+app.set('trust proxy', 1);
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 200,
     message: { error: 'طلبات كثيرة، حاول لاحقاً' }
 });
 app.use('/api/', globalLimiter);
-
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
@@ -176,8 +175,11 @@ app.post('/api/admin/products', isAdmin, upload.single('productImage'), validate
     try {
         const { name, price, stock, description, category, discountPercent } = req.body;
         const newProduct = new Product({
-            name, price: parseFloat(price), stock: parseInt(stock),
-            description: description || '', category: category || 'عام',
+            name,
+            price: parseFloat(price),
+            stock: parseInt(stock),
+            description: description || '',
+            category: category || 'عام',
             discountPercent: parseFloat(discountPercent) || 0,
             imageUrl: req.file ? `/uploads/${req.file.filename}` : null
         });
@@ -219,7 +221,7 @@ app.delete('/api/admin/products/:id', isAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ========== 3. Create Order (with Coupons, WhatsApp, Email) ==========
+// ========== 3. Create Order ==========
 app.post('/api/orders', [
     body('customerName').notEmpty(),
     body('customerPhone').notEmpty(),
@@ -260,9 +262,15 @@ app.post('/api/orders', [
         const finalTotal = total - discount;
         const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
         const newOrder = new Order({
-            orderId, customerName, customerPhone, customerAddress, customerEmail: customerEmail || null,
+            orderId,
+            customerName,
+            customerPhone,
+            customerAddress,
+            customerEmail: customerEmail || null,
             notes: notes || null,
-            items: [], total: finalTotal, status: 'قيد المراجعة'
+            items: [],
+            total: finalTotal,
+            status: 'قيد المراجعة'
         });
         for (const { product, quantity } of itemsData) {
             newOrder.items.push({ productId: product.id, name: product.name, quantity, price: product.price });
@@ -299,7 +307,7 @@ app.post('/api/orders', [
     }
 });
 
-// ========== 4. Admin Authentication (using MongoDB Admin model) ==========
+// ========== 4. Admin Authentication ==========
 app.post('/api/admin/login', async (req, res) => {
     const { username, password } = req.body;
     const admin = await Admin.findOne({ username });
@@ -310,7 +318,10 @@ app.post('/api/admin/login', async (req, res) => {
         res.status(401).json({ error: 'بيانات غير صحيحة' });
     }
 });
-app.post('/api/admin/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
+app.post('/api/admin/logout', (req, res) => {
+    req.session.destroy();
+    res.json({ success: true });
+});
 
 // ========== 5. Admin Order Management ==========
 app.get('/api/admin/orders', isAdmin, async (req, res) => {
@@ -371,9 +382,14 @@ app.get('/api/admin/coupons', isAdmin, async (req, res) => {
 app.post('/api/admin/coupons', isAdmin, async (req, res) => {
     const { code, type, value, expiryDate, usageLimit, minCartAmount, productId, newCustomerOnly } = req.body;
     const newCoupon = new Coupon({
-        code: code.toUpperCase(), type, value: parseFloat(value), expiryDate,
-        usageLimit: parseInt(usageLimit) || 1, minCartAmount: parseFloat(minCartAmount) || 0,
-        productId: productId || null, newCustomerOnly: newCustomerOnly === 'true'
+        code: code.toUpperCase(),
+        type,
+        value: parseFloat(value),
+        expiryDate,
+        usageLimit: parseInt(usageLimit) || 1,
+        minCartAmount: parseFloat(minCartAmount) || 0,
+        productId: productId || null,
+        newCustomerOnly: newCustomerOnly === 'true'
     });
     await newCoupon.save();
     res.json({ success: true, data: newCoupon });
@@ -417,7 +433,6 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
 });
 
 // ========== 12. Users Management (Admin) ==========
-// GET all registered users (without password hash)
 app.get('/api/admin/users', isAdmin, async (req, res) => {
     try {
         const users = await User.find().select('-passwordHash').sort({ createdAt: -1 });
@@ -427,15 +442,12 @@ app.get('/api/admin/users', isAdmin, async (req, res) => {
     }
 });
 
-// (اختياري) حذف مستخدم – يمكن إضافته إذا احتجت
-// app.delete('/api/admin/users/:id', isAdmin, async (req, res) => { ... });
-
 // ========== 13. SEO: Sitemap.xml ==========
 app.get('/sitemap.xml', async (req, res) => {
     const products = await Product.find();
-    let urls = [`<url><loc>https://absi-stor-1.onrender.com/</loc><lastmod>${new Date().toISOString()}</lastmod></url>`];
+    let urls = [`<url><loc>https://my-shop-final.onrender.com/</loc><lastmod>${new Date().toISOString()}</lastmod></url>`];
     products.forEach(p => {
-        urls.push(`<url><loc>https://absi-stor-1.onrender.com/product.html?id=${p.id}</loc><lastmod>${p.createdAt.toISOString()}</lastmod></url>`);
+        urls.push(`<url><loc>https://my-shop-final.onrender.com/product.html?id=${p.id}</loc><lastmod>${p.createdAt.toISOString()}</lastmod></url>`);
     });
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`;
     res.header('Content-Type', 'application/xml');
@@ -510,13 +522,11 @@ app.get('/api/orders/:id/invoice', isAdmin, async (req, res) => {
 app.post('/api/admin/migrate-from-json', isAdmin, async (req, res) => {
     const dataDir = path.join(__dirname, 'data');
     try {
-        // Products
         const productsJson = JSON.parse(fs.readFileSync(path.join(dataDir, 'products.json'), 'utf8'));
         for (const p of productsJson) {
             const exists = await Product.findOne({ id: p.id });
             if (!exists) await Product.create(p);
         }
-        // Orders
         const ordersJson = JSON.parse(fs.readFileSync(path.join(dataDir, 'orders.json'), 'utf8'));
         for (const o of ordersJson) {
             const exists = await Order.findOne({ orderId: o.orderId });
