@@ -758,24 +758,40 @@
 
     // ------------------- الطلبات -------------------
     async function loadOrders() { const data=await fetchAPI('/api/admin/orders'); orders=data.data; displayOrders(); updateStats(); }
-    function displayOrders(){
-        let html=`</table><thead><tr><th>رقم الطلب</th><th>العميل</th><th>الجوال</th><th>العنوان</th><th>الإجمالي</th><th>طريقة الشحن</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></tr></thead><tbody>`;
-        orders.forEach(o=>{
-            html+=`<tr>
-                <td>${o.orderId}</td><td>${o.customerName}</td><td>${o.customerPhone}</td><td>${o.customerAddress}</td>
-                <td>${o.total}</td><td>${o.shippingMethod||'عادي'}</td>
-                <td><select onchange="updateOrderStatus('${o.orderId}',this.value)">
-                    <option value="قيد المراجعة" ${o.status==='قيد المراجعة'?'selected':''}>قيد المراجعة</option>
-                    <option value="تم التجهيز" ${o.status==='تم التجهيز'?'selected':''}>تم التجهيز</option>
-                    <option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option>
-                </select></td>
-                <td>${new Date(o.date).toLocaleDateString()}</td>
-                <td><button onclick="generateInvoice('${o.orderId}')"><i class="fas fa-file-pdf"></i> PDF</button></td>
+    
+    // تم تعديل هذه الدالة لإصلاح تنسيق الجدول
+    function displayOrders() {
+        let html = `<table><thead>\
+            <th>رقم الطلب</th><th>العميل</th><th>الجوال</th><th>العنوان</th><th>الإجمالي</th><th>طريقة الشحن</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th>\
+        </thead><tbody>`;
+        orders.forEach(o => {
+            let shippingText = '';
+            if (o.shippingMethod === 'standard') shippingText = 'عادي';
+            else if (o.shippingMethod === 'express') shippingText = 'سريع';
+            else if (o.shippingMethod === 'pickup') shippingText = 'استلام';
+            else shippingText = o.shippingMethod || 'عادي';
+            
+            html += `\
+                <tr>
+                <td>${o.orderId || '-'}</td>
+                <td>${o.customerName || '-'}</td>
+                <td>${o.customerPhone || '-'}</td>
+                <td>${o.customerAddress || '-'}</td>
+                <td>${o.total || 0} ريال</td>\
+                <td>${shippingText}</td>\
+                <td><select onchange="updateOrderStatus('${o.orderId}', this.value)">\
+                    <option value="قيد المراجعة" ${o.status === 'قيد المراجعة' ? 'selected' : ''}>قيد المراجعة</option>\
+                    <option value="تم التجهيز" ${o.status === 'تم التجهيز' ? 'selected' : ''}>تم التجهيز</option>\
+                    <option value="تم التوصيل" ${o.status === 'تم التوصيل' ? 'selected' : ''}>تم التوصيل</option>\
+                </select></td>\
+                <td>${new Date(o.date).toLocaleDateString()}</td>\
+                <td><button onclick="generateInvoice('${o.orderId}')"><i class="fas fa-file-pdf"></i> PDF</button></td>\
             </tr>`;
         });
-        html+='</tbody></table>';
-        document.getElementById('ordersTable').innerHTML=html;
+        html += `</tbody></tr>`;
+        document.getElementById('ordersTable').innerHTML = html;
     }
+    
     async function updateOrderStatus(id,status){ await fetch(`/api/admin/orders/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})}); loadOrders(); }
     function generateInvoice(id){ window.open(`/api/orders/${id}/invoice`,'_blank'); }
     function exportOrdersCSV(){ window.location.href='/api/admin/export-orders'; }
@@ -783,9 +799,16 @@
     // ------------------- الكوبونات -------------------
     async function loadCoupons(){ const data=await fetchAPI('/api/admin/coupons'); coupons=data.data; displayCoupons(); }
     function displayCoupons(){
-        let html=`<table><thead><tr><th>الكود</th><th>النوع</th><th>القيمة</th><th>الصلاحية</th><th>الاستخدام</th><th>إجراء</th></tr></thead><tbody>`;
+        let html=`<tr><thead><tr><th>الكود</th><th>النوع</th><th>القيمة</th><th>الصلاحية</th><th>الاستخدام</th><th>إجراء</th></tr></thead><tbody>`;
         coupons.forEach(c=>{
-            html+=`<tr><td>${c.code}</td><td>${c.type==='percentage'?'نسبة':'ثابت'}</td><td>${c.value}</td><td>${new Date(c.expiryDate).toLocaleDateString()}</td><td>${c.usedCount}/${c.usageLimit}</td><td><button class="btn-danger" onclick="deleteCoupon('${c.id}')">حذف</button></td></tr>`;
+            html+=`<td>
+                <td>${c.code}</td>\
+                <td>${c.type==='percentage'?'نسبة':'ثابت'}</td>\
+                <td>${c.value}</td>\
+                <td>${new Date(c.expiryDate).toLocaleDateString()}</td>\
+                <td>${c.usedCount}/${c.usageLimit}</td>\
+                <td><button class="btn-danger" onclick="deleteCoupon('${c.id}')">حذف</button></td>\
+            </tr>`;
         });
         html+='</tbody></table>';
         document.getElementById('couponsTable').innerHTML=html;
@@ -812,7 +835,10 @@
     function displayOffers(){
         let html=`<table><thead><tr><th>الاسم</th><th>النوع</th><th>الهدف</th><th>الخصم</th><th>الفترة</th><th>فعال</th><th>إجراء</th></tr></thead><tbody>`;
         offers.forEach(o=>{
-            html+=`<tr><td>${o.name}</td><td>${o.type==='category'?'فئة':'منتج'}</td><td>${o.target}</td><td>${o.discountPercent}%</td><td>${new Date(o.startDate).toLocaleDateString()} - ${new Date(o.endDate).toLocaleDateString()}</td><td>${o.active?'نعم':'لا'}</td><td><button onclick="editOffer('${o.id}')"><i class="fas fa-edit"></i> تعديل</button> <button class="btn-danger" onclick="deleteOffer('${o.id}')">حذف</button></td></tr>`;
+            html+=`<tr>
+                <td>${o.name}</td><td>${o.type==='category'?'فئة':'منتج'}</td><td>${o.target}</td><td>${o.discountPercent}%</td><td>${new Date(o.startDate).toLocaleDateString()} - ${new Date(o.endDate).toLocaleDateString()}</td><td>${o.active?'نعم':'لا'}</td>
+                <td><button onclick="editOffer('${o.id}')"><i class="fas fa-edit"></i> تعديل</button> <button class="btn-danger" onclick="deleteOffer('${o.id}')">حذف</button></td>
+            </tr>`;
         });
         html+='</tbody></table>';
         document.getElementById('offersTable').innerHTML=html;
@@ -885,14 +911,10 @@
         } catch(e){ document.getElementById('reviewsList').innerHTML='<div class="alert-item">⚠️ فشل تحميل التقييمات</div>'; }
     }
     function displayReviews(){
-        let html=`<table><thead><tr><th>المنتج</th><th>العميل</th><th>التقييم</th><th>التعليق</th><th>رد الإدارة</th><th>الإجراءات</th></tr></thead><tbody>`;
+        let html=`<tr><thead><tr><th>المنتج</th><th>العميل</th><th>التقييم</th><th>التعليق</th><th>رد الإدارة</th><th>الإجراءات</th></tr></thead><tbody>`;
         reviews.forEach(r=>{
             html+=`<tr>
-                <td>${r.productName||r.productId}</td>
-                <td>${r.customerName}</td>
-                <td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td>
-                <td>${r.comment}</td>
-                <td>${r.adminReply||'-'}</td>
+                <td>${r.productName||r.productId}</td><td>${r.customerName}</td><td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td><td>${r.comment}</td><td>${r.adminReply||'-'}</td>
                 <td><button onclick="openReplyModal('${r._id}','${r.comment.replace(/'/g,"\\'")}')"><i class="fas fa-reply"></i> رد</button></td>
             </tr>`;
         });
@@ -921,7 +943,9 @@
         if(!users.length){ document.getElementById('usersTable').innerHTML='<div>لا يوجد مستخدمون مسجلون</div>'; return; }
         let html=`<table><thead><tr><th>اسم المستخدم</th><th>البريد</th><th>نقاط الولاء</th><th>عدد الطلبات</th><th>إجمالي المشتريات</th><th>تاريخ التسجيل</th></tr></thead><tbody>`;
         users.forEach(u=>{
-            html+=`<tr><td>${u.username}</td><td>${u.email}</td><td>${u.loyaltyPoints||0}</td><td>${u.totalOrders||0}</td><td>${(u.totalSpent||0).toFixed(2)} ريال</td><td>${new Date(u.createdAt).toLocaleDateString()}</td></tr>`;
+            html+=`<tr>
+                <td>${u.username}</td><td>${u.email}</td><td>${u.loyaltyPoints||0}</td><td>${u.totalOrders||0}</td><td>${(u.totalSpent||0).toFixed(2)} ريال</td><td>${new Date(u.createdAt).toLocaleDateString()}</td>
+            </tr>`;
         });
         html+='</tbody></table>';
         document.getElementById('usersTable').innerHTML=html;
@@ -954,8 +978,8 @@
         }
     }
     function displayTopProductsList(){
-        let html=`<table><thead><tr><th>المنتج</th><th>الكمية المباعة</th></tr></thead><tbody>`;
-        topProductsData.forEach(p=>{html+=`<tr><td>${p._id}</td><td>${p.totalSold}</td></tr>`;});
+        let html=`<tr><thead><tr><th>المنتج</th><th>الكمية المباعة</th></tr></thead><tbody>`;
+        topProductsData.forEach(p=>{html+=`<tr><td>${p._id}</td><td>${p.totalSold}</td>`;});
         html+='</tbody></table>';
         document.getElementById('topProductsList').innerHTML=html;
     }
