@@ -91,6 +91,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 app.use(morgan('combined', { stream: fs.createWriteStream(path.join(logsPath, 'access.log'), { flags: 'a' }) }));
 
+// ========== Maintenance Mode Middleware ==========
+app.use(async (req, res, next) => {
+    // استثناء المسارات الإدارية ومسارات الصحة والاختبار
+    if (req.path.startsWith('/api/admin') || req.path === '/login.html' || req.path === '/health' || req.path === '/debug-env' || req.path === '/test-email') {
+        return next();
+    }
+    const settings = await Settings.findOne();
+    if (settings && settings.maintenance === true) {
+        if (req.xhr || req.path.startsWith('/api/')) {
+            return res.status(503).json({ error: 'المتجر في صيانة مؤقتة، عاود المحاولة لاحقاً' });
+        } else {
+            return res.sendFile(path.join(__dirname, 'public', 'maintenance.html'));
+        }
+    }
+    next();
+});
+
 // Rate Limiting
 const globalLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: { error: 'طلبات كثيرة' } });
 app.use('/api/', globalLimiter);
@@ -150,6 +167,17 @@ const sendEmail = async (to, subject, html) => {
         await transporter.sendMail({ from: process.env.EMAIL_FROM || 'onboarding@resend.dev', to, subject, html });
     } catch (err) { console.error('Email error:', err); }
 };
+
+// ========== Test email endpoint ==========
+app.get('/test-email', async (req, res) => {
+    try {
+        await sendEmail('at0915727716@gmail.com', 'اختبار فوري من المتجر', '<h1>✅ تم إرسال هذا البريد عبر Resend</h1><p>إذا وصلت هذه الرسالة، فالمشكلة في رابط التفعيل فقط.</p>');
+        res.send('✅ تم إرسال البريد، تحقق من صندوق الوارد (بما في ذلك Spam)');
+    } catch (err) {
+        console.error('Test email error:', err);
+        res.status(500).send('❌ فشل الإرسال: ' + err.message);
+    }
+});
 
 // ========== Debug endpoint ==========
 app.get('/debug-env', (req, res) => {
