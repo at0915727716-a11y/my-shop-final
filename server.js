@@ -151,6 +151,17 @@ const sendEmail = async (to, subject, html) => {
     } catch (err) { console.error('Email error:', err); }
 };
 
+// ========== Debug endpoint ==========
+app.get('/debug-env', (req, res) => {
+    const hasKey = !!process.env.RESEND_API_KEY;
+    const preview = hasKey ? process.env.RESEND_API_KEY.substring(0, 8) + '...' : 'undefined';
+    res.json({
+        RESEND_API_KEY_exists: hasKey,
+        RESEND_API_KEY_preview: preview,
+        transporter_ready: !!transporter
+    });
+});
+
 // ========== Multer + Cloudinary ==========
 const storage = new CloudinaryStorage({
     cloudinary,
@@ -908,6 +919,9 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'حدث خطأ داخلي في الخادم' });
 });
+
+// ========== Confirm env variable at startup ==========
+console.log('🔐 RESEND_API_KEY loaded?', process.env.RESEND_API_KEY ? '✅ Yes' : '❌ No');
 
 // ========== Start Server (with Socket.io) ==========
 serverSocket.listen(PORT, () => {
