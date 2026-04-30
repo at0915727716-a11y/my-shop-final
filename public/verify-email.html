@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفعيل البريد الإلكتروني - Absi stor</title>
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f8fafc;
+            text-align: center;
+        }
+        
+        .verify-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 32px;
+            max-width: 500px;
+        }
+        
+        body.dark-mode .verify-card {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="verify-card">
+        <div id="status">جاري التحقق من الرابط...</div>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        if (!token) {
+            document.getElementById('status').innerHTML = '❌ رابط غير صالح';
+        } else {
+            fetch(`/api/verify-email?token=${token}`)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('status').innerHTML = html;
+                    if (html.includes('تم تفعيل حسابك')) {
+                        setTimeout(() => {
+                            window.location.href = '/login.html';
+                        }, 3000);
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('status').innerHTML = '❌ حدث خطأ أثناء التفعيل';
+                });
+        }
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+    </script>
+</body>
+
+</html>

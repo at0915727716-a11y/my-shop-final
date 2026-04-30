@@ -3,22 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>تفاصيل المنتج - Absi stor</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFDD8Q8VFG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-HFDD8Q8VFG');
+    </script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a4a6f">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <!-- Socket.io client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="/styles.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-            background: #f8f9fa;
-            direction: rtl;
-            padding: 20px;
-        }
+        /* تنسيقات إضافية خاصة بالمنتج (مع دعم الوضع الليلي) */
         
         .container {
             max-width: 1000px;
@@ -27,11 +34,7 @@
             border-radius: 24px;
             padding: 2rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-        
-        img {
-            max-width: 100%;
-            border-radius: 16px;
+            transition: background 0.3s, color 0.3s;
         }
         
         .price {
@@ -41,9 +44,50 @@
             margin: 1rem 0;
         }
         
+        .old-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+        
+        .discount-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
         .stock {
             color: #718096;
             margin-bottom: 1rem;
+        }
+        
+        .variant-select {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        
+        .wishlist-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #ccc;
+            transition: 0.2s;
+            margin-left: 0.5rem;
+            padding: 0;
+        }
+        
+        .wishlist-btn.active {
+            color: #e74c3c;
         }
         
         button {
@@ -55,6 +99,27 @@
             cursor: pointer;
             font-size: 1rem;
             margin-top: 1rem;
+        }
+        
+        .gallery {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .gallery img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+        
+        .gallery img:hover {
+            border-color: #1a4a6f;
         }
         
         .reviews {
@@ -75,6 +140,19 @@
             margin-bottom: 0.5rem;
         }
         
+        .admin-reply {
+            background: #e9ecef;
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-top: 0.8rem;
+            margin-right: 1rem;
+            border-right: 3px solid #2a5298;
+        }
+        
+        .admin-reply strong {
+            color: #2a5298;
+        }
+        
         form {
             margin-top: 1.5rem;
             background: #f1f1f1;
@@ -91,9 +169,49 @@
             border-radius: 12px;
             border: 1px solid #ccc;
         }
+        /* الوضع الليلي */
         
-        .error {
-            color: #e74c3c;
+        body.dark-mode .container,
+        body.dark-mode .review,
+        body.dark-mode form {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .price {
+            color: #ffc107;
+        }
+        
+        body.dark-mode button {
+            background: #3a3a3a;
+        }
+        
+        body.dark-mode button:hover {
+            background: #2a5298;
+        }
+        
+        body.dark-mode .admin-reply {
+            background: #2a2a2a;
+            border-right-color: #ffc107;
+        }
+        
+        body.dark-mode .variant-select {
+            background: #2a2a2a;
+            color: white;
+            border-color: #555;
+        }
+        
+        body.dark-mode .gallery img {
+            border-color: #555;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .price {
+                font-size: 1.4rem;
+            }
         }
     </style>
 </head>
@@ -102,7 +220,146 @@
     <div class="container" id="productContainer"></div>
     <div class="container reviews" id="reviewsContainer"></div>
 
+    <!-- أزرار إضافية (وضع ليلي + واتساب) -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <a href="https://wa.me/218915727716?text=مرحباً، لدي استفسار بخصوص منتج في Absi stor" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
     <script>
+        // === متغيرات عامة ===
+        let productData = null;
+        let userId = localStorage.getItem('userId');
+        let isInWishlist = false;
+        let socket = null;
+
+        // === الوضع الليلي و Service Worker ===
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(console.log);
+        }
+
+        // === مزامنة السلة مع الخادم ===
+        async function syncCartToServer() {
+            if (!localStorage.getItem('userId')) return;
+            let cart = JSON.parse(localStorage.getItem('absi_cart') || '[]');
+            await fetch('/api/cart/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    cart
+                })
+            });
+        }
+
+        async function syncCartFromServer() {
+            if (!localStorage.getItem('userId')) return;
+            const res = await fetch('/api/cart/sync');
+            const data = await res.json();
+            if (data.cart && data.cart.length) {
+                let localCart = JSON.parse(localStorage.getItem('absi_cart') || '[]');
+                for (const serverItem of data.cart) {
+                    const existing = localCart.find(i => i.productId === serverItem.productId && (i.variantId || '') === (serverItem.variantId || ''));
+                    if (existing) existing.quantity += serverItem.quantity;
+                    else localCart.push(serverItem);
+                }
+                localStorage.setItem('absi_cart', JSON.stringify(localCart));
+                await syncCartToServer(); // تحديث الخادم بالدمج
+                updateCartCount();
+            }
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('absi_cart') || '[]');
+            const count = cart.reduce((s, i) => s + i.quantity, 0);
+            // محاولة تحديث العدد في أيقونة السلة في الهيدر (إن وجد)
+            const cartCountSpan = document.getElementById('cartCount');
+            if (cartCountSpan) cartCountSpan.innerText = count;
+        }
+
+        // === Socket.io للإشعارات ===
+        function connectSocket(userId) {
+            if (socket) socket.disconnect();
+            socket = io('/', {
+                auth: {
+                    userId
+                }
+            });
+            socket.on('orderStatusChanged', (data) => {
+                alert(`📢 تحديث حالة الطلب #${data.orderId}\nالحالة: ${data.status}`);
+            });
+        }
+
+        if (userId) {
+            connectSocket(userId);
+            syncCartFromServer();
+        }
+
+        // === قائمة الرغبات ===
+        async function checkWishlist(productId) {
+            if (!userId) return false;
+            try {
+                const res = await fetch('/api/wishlist');
+                const data = await res.json();
+                if (data.success) return data.data.some(item => item.productId === productId);
+            } catch (e) {
+                console.warn(e);
+            }
+            return false;
+        }
+        async function toggleWishlist(productId) {
+            if (!userId) {
+                alert('الرجاء تسجيل الدخول أولاً لإضافة المنتج إلى المفضلة');
+                return;
+            }
+            try {
+                if (isInWishlist) {
+                    await fetch(`/api/wishlist/${productId}`, {
+                        method: 'DELETE'
+                    });
+                    isInWishlist = false;
+                } else {
+                    await fetch('/api/wishlist', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            productId
+                        })
+                    });
+                    isInWishlist = true;
+                }
+                updateWishlistButton();
+            } catch (e) {
+                alert('حدث خطأ');
+            }
+        }
+
+        function updateWishlistButton() {
+            const btn = document.getElementById('wishlistBtn');
+            if (btn) {
+                btn.innerHTML = isInWishlist ? '❤️' : '🤍';
+                btn.classList.toggle('active', isInWishlist);
+            }
+        }
+
+        // === تسجيل المشاهدة في قائمة "شوهدت مؤخراً" ===
+        function addToRecent(product) {
+            let recent = JSON.parse(localStorage.getItem('absi_recent') || '[]');
+            recent = recent.filter(id => id !== product.id);
+            recent.unshift(product.id);
+            if (recent.length > 10) recent.pop();
+            localStorage.setItem('absi_recent', JSON.stringify(recent));
+        }
+
+        // === جلب المنتج وعرضه ===
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
         if (!productId) window.location.href = '/shop.html';
@@ -111,18 +368,112 @@
             const res = await fetch(`/api/products/${productId}`);
             const data = await res.json();
             if (data.success) {
-                const p = data.data;
-                document.getElementById('productContainer').innerHTML = `
-                <h1>${p.name}</h1>
-                <img src="${p.imageUrl || 'https://via.placeholder.com/400'}" onerror="this.src='https://via.placeholder.com/400'">
-                <div class="price">${p.price} ريال</div>
-                <div class="stock">المتبقي: ${p.stock} قطعة</div>
-                <p>${p.description || 'لا يوجد وصف'}</p>
-                <button onclick="addToCart()"><i class="fas fa-cart-plus"></i> أضف إلى السلة</button>
-            `;
-            } else alert('المنتج غير موجود');
+                productData = data.data;
+                isInWishlist = await checkWishlist(productId);
+                renderProduct(productData);
+                addToRecent(productData);
+                // إضافة JSON-LD ديناميكياً
+                addJsonLd(productData);
+            } else {
+                alert('المنتج غير موجود');
+                window.location.href = '/shop.html';
+            }
         }
 
+        function addJsonLd(product) {
+            const script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.text = JSON.stringify({
+                "@context": "https://schema.org/",
+                "@type": "Product",
+                "name": product.name,
+                "image": product.imageUrl,
+                "description": product.description,
+                "sku": product.id,
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "SAR",
+                    "price": product.price,
+                    "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+                }
+            });
+            document.head.appendChild(script);
+        }
+
+        function renderProduct(p) {
+            let variantsHtml = '';
+            if (p.variants && p.variants.length) {
+                variantsHtml = `<select class="variant-select" id="variantSelect">
+                                    <option value="">اختر الخيار</option>`;
+                p.variants.forEach(v => {
+                    variantsHtml += `<option value="${v.id}" data-price="${v.price || p.price}" data-stock="${v.stock}">
+                                        ${v.name} - ${v.price || p.price} ريال (المتبقي ${v.stock})
+                                    </option>`;
+                });
+                variantsHtml += `</select>`;
+            }
+            const stockText = (p.variants && p.variants.length) ? 'يتوفر بعدة خيارات' : `المتبقي: ${p.stock} قطعة`;
+            const discountPercent = p.discountPercent || 0;
+            const finalPrice = discountPercent > 0 ? p.price * (1 - discountPercent / 100) : p.price;
+            const discountHtml = discountPercent > 0 ? `
+                <div class="price">
+                    ${finalPrice} ريال <span class="old-price">${p.price} ريال</span>
+                    <span class="discount-badge">خصم ${discountPercent}%</span>
+                </div>
+            ` : `<div class="price">${p.price} ريال</div>`;
+
+            // معرض الصور
+            let galleryHtml = '';
+            if (p.gallery && p.gallery.length) {
+                galleryHtml = `<div class="gallery">`;
+                p.gallery.forEach(img => {
+                    galleryHtml += `<img src="${img}" onclick="changeMainImage('${img}')" onerror="this.style.display='none'">`;
+                });
+                galleryHtml += `</div>`;
+            }
+
+            document.getElementById('productContainer').innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h1>${p.name}</h1>
+                    <button id="wishlistBtn" class="wishlist-btn" onclick="toggleWishlist('${p.id}')">${isInWishlist ? '❤️' : '🤍'}</button>
+                </div>
+                <img id="mainImage" src="${p.imageUrl || 'https://via.placeholder.com/400'}" onerror="this.src='https://via.placeholder.com/400'" style="width:100%; max-height:400px; object-fit:contain;">
+                ${galleryHtml}
+                ${discountHtml}
+                <div class="stock">${stockText}</div>
+                <p>${p.description || 'لا يوجد وصف'}</p>
+                ${variantsHtml}
+                <button onclick="addToCart()"><i class="fas fa-cart-plus"></i> أضف إلى السلة</button>
+            `;
+            if (p.variants && p.variants.length) {
+                const select = document.getElementById('variantSelect');
+                if (select) select.addEventListener('change', updatePriceFromVariant);
+            }
+            updateWishlistButton();
+        }
+
+        function changeMainImage(src) {
+            document.getElementById('mainImage').src = src;
+        }
+
+        function updatePriceFromVariant() {
+            const select = document.getElementById('variantSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption && selectedOption.dataset.price) {
+                const priceSpan = document.querySelector('.price');
+                if (priceSpan) {
+                    let newPrice = parseFloat(selectedOption.dataset.price);
+                    const discountPercent = productData.discountPercent || 0;
+                    if (discountPercent > 0) newPrice = newPrice * (1 - discountPercent / 100);
+                    priceSpan.innerHTML = `${newPrice} ريال`;
+                    // إعادة تنسيق إذا وجد خصم (يمكن تبسيطها)
+                    const oldPriceSpan = document.querySelector('.old-price');
+                    if (oldPriceSpan) oldPriceSpan.innerText = `${selectedOption.dataset.price} ريال`;
+                }
+            }
+        }
+
+        // === التقييمات والردود ===
         async function loadReviews() {
             const res = await fetch(`/api/products/${productId}/reviews`);
             const data = await res.json();
@@ -132,22 +483,28 @@
                 else {
                     data.data.forEach(r => {
                         html += `<div class="review">
-                                <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
-                                <strong>${r.customerName}</strong> - <small>${new Date(r.date).toLocaleDateString()}</small>
-                                <p>${r.comment}</p>
-                            </div>`;
+                                    <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                                    <strong>${r.customerName}</strong> - <small>${new Date(r.date).toLocaleDateString()}</small>
+                                    <p>${r.comment}</p>`;
+                        if (r.adminReply) {
+                            html += `<div class="admin-reply">
+                                        <strong>رد الإدارة:</strong> ${r.adminReply}<br>
+                                        <small>${r.adminReplyDate ? new Date(r.adminReplyDate).toLocaleDateString() : ''}</small>
+                                    </div>`;
+                        }
+                        html += `</div>`;
                     });
                 }
                 html += `<form onsubmit="submitReview(event)">
-                        <h3>أضف تقييمك</h3>
-                        <select id="rating" required>
-                            <option value="1">1 نجمة</option><option value="2">2 نجمات</option><option value="3">3 نجمات</option>
-                            <option value="4">4 نجمات</option><option value="5" selected>5 نجمات</option>
-                        </select>
-                        <textarea id="comment" rows="3" placeholder="تعليقك" required></textarea>
-                        <input type="text" id="reviewerName" placeholder="اسمك (اختياري)">
-                        <button type="submit">إرسال التقييم</button>
-                    </form>`;
+                            <h3>أضف تقييمك</h3>
+                            <select id="rating" required>
+                                <option value="1">1 نجمة</option><option value="2">2 نجمات</option><option value="3">3 نجمات</option>
+                                <option value="4">4 نجمات</option><option value="5" selected>5 نجمات</option>
+                            </select>
+                            <textarea id="comment" rows="3" placeholder="تعليقك" required></textarea>
+                            <input type="text" id="reviewerName" placeholder="اسمك (اختياري)">
+                            <button type="submit">إرسال التقييم</button>
+                        </form>`;
                 document.getElementById('reviewsContainer').innerHTML = html;
             }
         }
@@ -174,30 +531,59 @@
             } else alert('حدث خطأ');
         }
 
-        function addToCart() {
-            // نحتاج اسم المنتج وسعره – يمكن جلبه من DOM أو من الـ API
+        // === إضافة إلى السلة (مع دعم المتغيرات والمزامنة) ===
+        async function addToCart() {
+            let selectedPrice = productData.price;
+            let variantId = null;
+            let variantStock = null;
+            const select = document.getElementById('variantSelect');
+            if (select && select.value) {
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption.dataset.price) selectedPrice = parseFloat(selectedOption.dataset.price);
+                if (selectedOption.dataset.stock) variantStock = parseInt(selectedOption.dataset.stock);
+                variantId = select.value;
+                if (variantStock !== null && variantStock <= 0) {
+                    alert('هذا الخيار غير متوفر حالياً');
+                    return;
+                }
+            } else if (productData.stock <= 0) {
+                alert('المنتج غير متوفر حالياً');
+                return;
+            }
+            // تطبيق الخصم
+            const discountPercent = productData.discountPercent || 0;
+            if (discountPercent > 0) selectedPrice = selectedPrice * (1 - discountPercent / 100);
             const name = document.querySelector('h1').innerText;
-            const priceEl = document.querySelector('.price');
-            const price = parseFloat(priceEl.innerText);
-            let cart = localStorage.getItem('absi_cart');
-            cart = cart ? JSON.parse(cart) : [];
-            const existing = cart.find(i => i.productId === productId);
+            let cart = JSON.parse(localStorage.getItem('absi_cart') || '[]');
+            const existing = cart.find(i => i.productId === productId && i.variantId === variantId);
             if (existing) existing.quantity++;
             else cart.push({
                 productId,
                 name,
-                price,
-                quantity: 1
+                price: selectedPrice,
+                quantity: 1,
+                variantId
             });
             localStorage.setItem('absi_cart', JSON.stringify(cart));
+            updateCartCount();
+            // مزامنة مع الخادم
+            await syncCartToServer();
             alert('✅ تمت الإضافة إلى السلة');
         }
 
-        loadProduct();
-        loadReviews();
+        // ربط الدوال العامة
         window.submitReview = submitReview;
         window.addToCart = addToCart;
+        window.toggleDarkMode = toggleDarkMode;
+        window.toggleWishlist = toggleWishlist;
+        window.changeMainImage = changeMainImage;
+
+        // تهيئة الصفحة
+        loadProduct();
+        loadReviews();
+        updateCartCount();
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 
 </html>

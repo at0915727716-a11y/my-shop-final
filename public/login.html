@@ -3,9 +3,28 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>دخول المدير - Absi stor</title>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFDD8Q8VFG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-HFDD8Q8VFG');
+    </script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a4a6f">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <!-- Styles -->
+    <link rel="stylesheet" href="/styles.css">
     <style>
+        /* الأنماط الأصلية مع تحسينات للتوافق مع الميزات الجديدة */
+        
         * {
             margin: 0;
             padding: 0;
@@ -19,6 +38,11 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            transition: background 0.3s;
+        }
+        
+        body.dark-mode {
+            background: #121212;
         }
         
         .login-card {
@@ -28,6 +52,8 @@
             width: 360px;
             text-align: center;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s, color 0.3s;
+            margin-bottom: 20px;
         }
         
         .logo {
@@ -70,6 +96,21 @@
             margin-top: 10px;
             font-size: 0.9rem;
         }
+        
+        .info-message {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #2a5298;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+        
+        @media (max-width: 480px) {
+            .login-card {
+                width: 90%;
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -82,9 +123,36 @@
         <input type="password" id="password" placeholder="كلمة المرور" value="admin123">
         <button onclick="login()">تسجيل الدخول</button>
         <div class="error" id="errorMsg"></div>
+        <!-- إضافة معلومات بسيطة عن الميزات الجديدة (اختياري) -->
+        <div class="info-message">
+            <i class="fas fa-chart-line"></i> لوحة تحكم متقدمة |
+            <i class="fas fa-gift"></i> نقاط ولاء |
+            <i class="fas fa-truck"></i> شحن متعدد
+        </div>
     </div>
 
+    <!-- أزرار إضافية (وضع ليلي + واتساب) -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <a href="https://wa.me/218915727716?text=مرحباً، أواجه مشكلة في تسجيل الدخول إلى لوحة تحكم Absi stor" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
     <script>
+        // ========== الوضع الليلي و Service Worker ==========
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered', reg))
+                .catch(err => console.log('Service Worker failed', err));
+        }
+
+        // ========== تسجيل الدخول الأصلي ==========
         async function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -105,11 +173,17 @@
                 document.getElementById('errorMsg').innerText = data.error || 'بيانات غير صحيحة';
             }
         }
-        // Enter key
         document.getElementById('password').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') login();
         });
+
+        // ربط الدوال العامة
+        window.toggleDarkMode = toggleDarkMode;
+        window.login = login;
     </script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 
 </html>

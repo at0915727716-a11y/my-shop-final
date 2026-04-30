@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>المفضلة - Absi stor</title>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFDD8Q8VFG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-HFDD8Q8VFG');
+    </script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a4a6f">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .wishlist-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        
+        .wishlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: 0.2s;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 1rem;
+        }
+        
+        .product-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .product-price {
+            color: #1a4a6f;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        
+        .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .empty-msg {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 24px;
+        }
+        
+        .login-warning {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 24px;
+        }
+        
+        body.dark-mode .product-card,
+        body.dark-mode .empty-msg,
+        body.dark-mode .login-warning {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .product-price {
+            color: #ffc107;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wishlist-container" id="wishlistContent"></div>
+
+    <!-- الأزرار العامة -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <a href="https://wa.me/218915727716?text=مرحباً، أحتاج مساعدة بخصوص المفضلة" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(e => console.log);
+
+        const userId = localStorage.getItem('userId');
+
+        async function loadWishlist() {
+            if (!userId) {
+                document.getElementById('wishlistContent').innerHTML = `
+                    <div class="login-warning">
+                        <h2>🔐 الرجاء تسجيل الدخول</h2>
+                        <p>لعرض قائمة رغباتك، يرجى تسجيل الدخول أولاً.</p>
+                        <button onclick="location.href='/shop.html'" style="margin-top:1rem;">تسجيل الدخول</button>
+                    </div>`;
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/wishlist');
+                const data = await res.json();
+                if (!data.success || data.data.length === 0) {
+                    document.getElementById('wishlistContent').innerHTML = `
+                        <div class="empty-msg">
+                            <i class="fas fa-heart" style="font-size:3rem; color:#ccc;"></i>
+                            <h3>قائمة الرغبات فارغة</h3>
+                            <p>أضف منتجاتك المفضلة لتظهر هنا.</p>
+                            <button onclick="location.href='/shop.html'" style="margin-top:1rem;">استمر بالتسوق</button>
+                        </div>`;
+                    return;
+                }
+
+                // عرض المنتجات
+                const wishlistItems = data.data;
+                const productsHtml = `
+                    <div class="wishlist-header">
+                        <h1><i class="fas fa-heart"></i> قائمة رغباتي</h1>
+                        <span>${wishlistItems.length} منتج</span>
+                    </div>
+                    <div class="products-grid" id="productsGrid"></div>
+                `;
+                document.getElementById('wishlistContent').innerHTML = productsHtml;
+
+                // جلب تفاصيل كل منتج
+                const productDetails = await Promise.all(wishlistItems.map(async(item) => {
+                    const prodRes = await fetch(`/api/products/${item.productId}`);
+                    const prodData = await prodRes.json();
+                    return prodData.success ? prodData.data : null;
+                }));
+                const validProducts = productDetails.filter(p => p);
+
+                const grid = document.getElementById('productsGrid');
+                grid.innerHTML = validProducts.map(p => `
+                    <div class="product-card">
+                        <img class="product-img" src="${p.imageUrl || 'https://via.placeholder.com/300'}" onerror="this.src='https://via.placeholder.com/300'">
+                        <div class="product-info">
+                            <div class="product-title">${p.name}</div>
+                            <div class="product-price">${p.price} ريال</div>
+                            <button class="remove-btn" onclick="removeFromWishlist('${p.id}')"><i class="fas fa-trash-alt"></i> إزالة</button>
+                            <button onclick="addToCartAndRedirect('${p.id}')" style="margin-top:0.5rem; background:#2a5298;">🛒 إضافة للسلة</button>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('wishlistContent').innerHTML = `<div class="empty-msg"><h3>حدث خطأ</h3><p>فشل تحميل القائمة</p></div>`;
+            }
+        }
+
+        async function removeFromWishlist(productId) {
+            const res = await fetch(`/api/wishlist/${productId}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                loadWishlist(); // إعادة تحميل القائمة
+            } else {
+                alert('حدث خطأ أثناء الإزالة');
+            }
+        }
+
+        function addToCartAndRedirect(productId) {
+            // إضافة إلى السلة (بدون صفحة تفاصيل)
+            let cart = localStorage.getItem('absi_cart');
+            cart = cart ? JSON.parse(cart) : [];
+            // نحتاج اسم المنتج وسعره – سنأخذه من العنصر الحالي
+            const card = event.target.closest('.product-card');
+            const name = card.querySelector('.product-title').innerText;
+            const priceText = card.querySelector('.product-price').innerText;
+            const price = parseFloat(priceText);
+            const existing = cart.find(i => i.productId === productId);
+            if (existing) existing.quantity++;
+            else cart.push({
+                productId,
+                name,
+                price,
+                quantity: 1
+            });
+            localStorage.setItem('absi_cart', JSON.stringify(cart));
+            alert('تمت إضافة المنتج إلى السلة');
+            // يمكن توجيهه إلى السلة أو المتجر
+            window.location.href = '/shop.html';
+        }
+
+        loadWishlist();
+        window.toggleDarkMode = toggleDarkMode;
+        window.removeFromWishlist = removeFromWishlist;
+        window.addToCartAndRedirect = addToCartAndRedirect;
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</body>
+
+</html>

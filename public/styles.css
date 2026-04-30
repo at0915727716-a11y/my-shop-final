@@ -12,7 +12,7 @@ body {
     direction: rtl;
     color: #1e293b;
     line-height: 1.5;
-    scroll-behavior: smooth;
+    transition: background 0.3s, color 0.3s;
 }
 
 
@@ -192,7 +192,7 @@ tr:hover td {
 }
 
 
-/* ========== Side Cart (خاص بسلة التسوق) ========== */
+/* ========== Side Cart ========== */
 
 .side-cart {
     position: fixed;
@@ -308,7 +308,7 @@ tr:hover td {
 }
 
 
-/* ========== Header & Navigation (مخصص لـ shop.html, admin.html) ========== */
+/* ========== Header & Navigation ========== */
 
 .header {
     background: linear-gradient(135deg, #0f2b3d, #1a4a6f);
@@ -334,7 +334,8 @@ tr:hover td {
 }
 
 .cart-icon,
-.user-icon {
+.user-icon,
+.wishlist-icon {
     background: rgba(255, 255, 255, 0.15);
     padding: 8px 16px;
     border-radius: 40px;
@@ -346,7 +347,8 @@ tr:hover td {
 }
 
 .cart-icon:hover,
-.user-icon:hover {
+.user-icon:hover,
+.wishlist-icon:hover {
     background: rgba(255, 255, 255, 0.3);
 }
 
@@ -385,7 +387,7 @@ tr:hover td {
 }
 
 
-/* ========== Filters (للمتجر) ========== */
+/* ========== Filters (basic) ========== */
 
 .filters {
     display: flex;
@@ -403,6 +405,26 @@ tr:hover td {
 }
 
 
+/* Advanced filters (إضافي) */
+
+.adv-filters {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 2rem;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+}
+
+.adv-filters input,
+.adv-filters select {
+    width: 120px;
+    border-radius: 40px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+}
+
+
 /* ========== Product Card ========== */
 
 .product-card {
@@ -411,6 +433,7 @@ tr:hover td {
     overflow: hidden;
     transition: all 0.2s;
     cursor: pointer;
+    position: relative;
 }
 
 .product-img {
@@ -446,7 +469,107 @@ tr:hover td {
 }
 
 
-/* ========== Stats Cards (للوحة) ========== */
+/* زر قائمة الرغبات (wishlist) */
+
+.wishlist-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: 0.2s;
+    z-index: 2;
+    color: #ccc;
+}
+
+.wishlist-btn.active {
+    color: #e74c3c;
+}
+
+.wishlist-btn i {
+    font-size: 1.2rem;
+}
+
+
+/* متغيرات المنتج (variants) */
+
+.variant-select {
+    width: 100%;
+    padding: 5px;
+    margin: 5px 0;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 0.9rem;
+}
+
+
+/* تنسيقات المنتجات التي شوهدت مؤخراً */
+
+.recent-section {
+    margin: 2rem auto;
+    max-width: 1400px;
+    padding: 0 1rem;
+}
+
+.recent-title {
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #1a4a6f;
+}
+
+.recent-grid {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.recent-item {
+    min-width: 120px;
+    background: white;
+    border-radius: 16px;
+    padding: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.recent-item:hover {
+    transform: translateY(-3px);
+}
+
+.recent-item img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+}
+
+.recent-item div {
+    font-size: 0.8rem;
+}
+
+.recent-item div:first-of-type {
+    font-weight: bold;
+}
+
+.recent-item div:last-of-type {
+    color: #1a4a6f;
+    font-weight: bold;
+}
+
+
+/* ========== Stats Cards ========== */
 
 .stats-grid {
     display: grid;
@@ -473,7 +596,7 @@ tr:hover td {
 }
 
 
-/* ========== Sidebar (للأدمن) ========== */
+/* ========== Sidebar (Admin) ========== */
 
 .sidebar {
     width: 260px;
@@ -555,6 +678,10 @@ tr:hover td {
     .filters select {
         width: 45%;
     }
+    .adv-filters input,
+    .adv-filters select {
+        width: 90px;
+    }
     .sidebar {
         width: 80px;
         padding: 1rem;
@@ -568,6 +695,13 @@ tr:hover td {
     .stats-grid {
         grid-template-columns: 1fr 1fr;
     }
+    .recent-item {
+        min-width: 100px;
+    }
+    .recent-item img {
+        width: 60px;
+        height: 60px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -579,6 +713,15 @@ tr:hover td {
     }
     .product-price {
         font-size: 1rem;
+    }
+    .adv-filters {
+        gap: 0.5rem;
+        margin: 0.5rem;
+    }
+    .adv-filters input,
+    .adv-filters select {
+        width: 70px;
+        font-size: 0.7rem;
     }
 }
 
@@ -653,4 +796,211 @@ tr:hover td {
 
 .p-3 {
     padding: 1.5rem;
+}
+
+
+/* ========== الإضافات الجديدة: الوضع الليلي ========== */
+
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 999;
+    background: #1a4a6f;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    text-align: center;
+    line-height: 48px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-size: 22px;
+    transition: 0.2s;
+}
+
+.dark-mode-toggle:hover {
+    transform: scale(1.05);
+}
+
+body.dark-mode {
+    background: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .header,
+body.dark-mode .sidebar,
+body.dark-mode .card,
+body.dark-mode .modal-content,
+body.dark-mode .table-wrapper,
+body.dark-mode .stat-card,
+body.dark-mode .product-card,
+body.dark-mode .side-cart,
+body.dark-mode .login-card,
+body.dark-mode .container,
+body.dark-mode .order-card,
+body.dark-mode .recent-item,
+body.dark-mode .wishlist-btn {
+    background: #1e1e1e;
+    color: #e0e0e0;
+    border-color: #333;
+}
+
+body.dark-mode button,
+body.dark-mode .btn,
+body.dark-mode .cart-icon,
+body.dark-mode .user-icon,
+body.dark-mode .wishlist-icon {
+    background: #3a3a3a;
+    color: white;
+}
+
+body.dark-mode button:hover {
+    background: #2a5298;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #2a2a2a;
+    color: white;
+    border-color: #555;
+}
+
+body.dark-mode table th {
+    background: #2a2a2a;
+    color: #ddd;
+}
+
+body.dark-mode table td {
+    border-bottom-color: #333;
+}
+
+body.dark-mode .alert-warning {
+    background: #2a2a2a;
+    border-right-color: #f59e0b;
+    color: #fbbf24;
+}
+
+body.dark-mode .alert-success {
+    background: #1e3a2f;
+    border-right-color: #27ae60;
+    color: #a7f3d0;
+}
+
+body.dark-mode .alert-danger {
+    background: #3a1e1e;
+    border-right-color: #e74c3c;
+    color: #fecaca;
+}
+
+body.dark-mode .sidebar nav li:hover,
+body.dark-mode .sidebar nav li.active {
+    background: #2a5298;
+}
+
+body.dark-mode .stat-card h3,
+body.dark-mode .product-price,
+body.dark-mode .recent-item div:last-of-type,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4 {
+    color: #ffc107;
+}
+
+body.dark-mode .cart-count {
+    background: #ffc107;
+    color: #1a4a6f;
+}
+
+body.dark-mode .wishlist-btn {
+    background: #333;
+    color: #ccc;
+}
+
+body.dark-mode .wishlist-btn.active {
+    color: #e74c3c;
+}
+
+body.dark-mode .variant-select {
+    background: #2a2a2a;
+    color: white;
+    border-color: #555;
+}
+
+
+/* ========== زر واتساب عائم ========== */
+
+.whatsapp-float {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: #25D366;
+    color: white;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 55px;
+    font-size: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: 0.2s;
+}
+
+.whatsapp-float:hover {
+    transform: scale(1.05);
+    background: #128C7E;
+}
+
+@media (max-width: 768px) {
+    .whatsapp-float {
+        bottom: 70px;
+        right: 15px;
+        width: 45px;
+        height: 45px;
+        line-height: 45px;
+        font-size: 24px;
+    }
+    .dark-mode-toggle {
+        width: 38px;
+        height: 38px;
+        line-height: 38px;
+        font-size: 18px;
+        bottom: 15px;
+        left: 15px;
+    }
+}
+
+
+/* ========== تبويبات تسجيل الدخول (tabs) ========== */
+
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 1rem 0;
+}
+
+.tab-btn {
+    background: #e2e8f0;
+    color: #1a4a6f;
+    padding: 6px 12px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.tab-btn.active {
+    background: #1a4a6f;
+    color: white;
+}
+
+body.dark-mode .tab-btn {
+    background: #2a2a2a;
+    color: #ddd;
+}
+
+body.dark-mode .tab-btn.active {
+    background: #2a5298;
+    color: white;
 }

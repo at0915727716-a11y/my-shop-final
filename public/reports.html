@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>التقارير - Absi stor</title>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFDD8Q8VFG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-HFDD8Q8VFG');
+    </script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a4a6f">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: #f0f2f5;
+            padding: 20px;
+        }
+        
+        .reports-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-excel {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.2rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #1a4a6f;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .login-warning {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 24px;
+        }
+        
+        body.dark-mode .stat-card,
+        body.dark-mode .chart-card,
+        body.dark-mode .login-warning {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode .stat-card h3 {
+            color: #ffc107;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reports-container" id="reportsContent">
+        <!-- سيتم ملؤه ديناميكياً -->
+        <div class="login-warning">جاري التحقق من الصلاحيات...</div>
+    </div>
+
+    <!-- الأزرار العامة -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <a href="https://wa.me/218915727716?text=مرحباً، أحتاج مساعدة في التقارير" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+        // الوضع الليلي و PWA
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(e => console.log);
+
+        // التحقق من صلاحيات المدير قبل عرض التقارير
+        async function checkAdminAndLoad() {
+            try {
+                // محاولة جلب أي بيانات إدارية (مثل stats) – إذا فشلت تعني غير مصرح
+                const testRes = await fetch('/api/admin/stats');
+                if (testRes.status === 401) {
+                    document.getElementById('reportsContent').innerHTML = `
+                        <div class="login-warning">
+                            <h2>🔐 غير مصرح</h2>
+                            <p>هذه الصفحة مخصصة للمدير فقط. الرجاء تسجيل الدخول أولاً.</p>
+                            <button onclick="location.href='/login.html'" style="margin-top:1rem;">تسجيل الدخول</button>
+                        </div>`;
+                    return;
+                }
+                // تحميل البيانات
+                await loadReports();
+            } catch (e) {
+                document.getElementById('reportsContent').innerHTML = `<div class="login-warning"><h2>⚠️ خطأ</h2><p>فشل الاتصال بالخادم</p></div>`;
+            }
+        }
+
+        async function loadReports() {
+            const [statsRes, salesReportRes] = await Promise.all([
+                fetch('/api/admin/stats'),
+                fetch('/api/admin/export-orders') // نستخدم هذا لاستخراج البيانات، لكننا نريد JSON، لكن export-orders يعيد CSV. بدلاً من ذلك سنجلب من /api/admin/orders ونحسب في الواجهة
+            ]);
+            const stats = await statsRes.json();
+            const ordersRes = await fetch('/api/admin/orders');
+            const ordersData = await ordersRes.json();
+            const orders = ordersData.data || [];
+
+            // حساب إجمالي المبيعات الشهرية (آخر 12 شهراً)
+            const monthlySales = {};
+            orders.forEach(order => {
+                const date = new Date(order.date);
+                const monthKey = `${date.getFullYear()}-${date.getMonth()+1}`;
+                monthlySales[monthKey] = (monthlySales[monthKey] || 0) + order.total;
+            });
+            const months = Object.keys(monthlySales).sort().slice(-12);
+            const salesValues = months.map(m => monthlySales[m]);
+
+            // عرض الإحصائيات
+            const statsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card"><h3>${stats.data.totalProducts || 0}</h3><p>المنتجات</p></div>
+                    <div class="stat-card"><h3>${stats.data.totalOrders || 0}</h3><p>الطلبات</p></div>
+                    <div class="stat-card"><h3>${stats.data.totalSales || 0}</h3><p>إجمالي المبيعات (ريال)</p></div>
+                    <div class="stat-card"><h3>${stats.data.lowStock || 0}</h3><p>منتجات مخزون منخفض</p></div>
+                </div>
+                <div class="chart-card">
+                    <h3>📈 المبيعات الشهرية (آخر 12 شهراً)</h3>
+                    <canvas id="salesChart" width="400" height="200"></canvas>
+                </div>
+                <div class="header-actions">
+                    <h3>🏆 أفضل 5 منتجات مبيعاً</h3>
+                    <button class="btn-excel" onclick="downloadExcelReport()"><i class="fas fa-file-excel"></i> تصدير تقرير Excel</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>المنتج</th><th>الكمية المباعة</th></tr></thead>
+                        <tbody id="topProductsBody"></tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('reportsContent').innerHTML = statsHtml;
+
+            // رسم المبيعات الشهرية
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months.map(m => m.split('-')[1] + '/' + m.split('-')[0]),
+                    datasets: [{
+                        label: 'المبيعات (ريال)',
+                        data: salesValues,
+                        borderColor: '#2a5298',
+                        backgroundColor: 'rgba(42,82,152,0.1)',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
+                }
+            });
+
+            // عرض أفضل المنتجات
+            const topRes = await fetch('/api/admin/stats');
+            const topData = await topRes.json();
+            const topProducts = topData.data.topProducts || [];
+            const tbody = document.getElementById('topProductsBody');
+            tbody.innerHTML = topProducts.map(p => `<tr><td>${p._id}</td><td>${p.totalSold}</td></tr>`).join('');
+        }
+
+        async function downloadExcelReport() {
+            window.open('/api/admin/reports/sales', '_blank');
+        }
+
+        checkAdminAndLoad();
+        window.toggleDarkMode = toggleDarkMode;
+        window.downloadExcelReport = downloadExcelReport;
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</body>
+
+</html>

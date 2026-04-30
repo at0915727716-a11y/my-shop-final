@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>إنشاء حساب - Absi stor</title>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFDD8Q8VFG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-HFDD8Q8VFG');
+    </script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a4a6f">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa, #e4e8f0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .register-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 32px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1a4a6f;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 30px;
+            font-size: 1rem;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #1a4a6f;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background: #0f2b3d;
+        }
+        
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .success {
+            color: #27ae60;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .login-link a {
+            color: #2a5298;
+            text-decoration: none;
+        }
+        
+        body.dark-mode .register-card {
+            background: #1e1e1e;
+            color: #e0e0e0;
+        }
+        
+        body.dark-mode h1 {
+            color: #ffc107;
+        }
+        
+        body.dark-mode input {
+            background: #2a2a2a;
+            color: white;
+            border-color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-card">
+        <div class="logo">🏪</div>
+        <h1>إنشاء حساب جديد</h1>
+        <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="regName" placeholder="أحمد">
+        </div>
+        <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="regEmail" placeholder="example@domain.com">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="regPassword" placeholder="********">
+        </div>
+        <div class="form-group">
+            <label>تأكيد كلمة المرور</label>
+            <input type="password" id="regConfirmPassword" placeholder="********">
+        </div>
+        <button onclick="register()">تسجيل</button>
+        <div class="error" id="errorMsg"></div>
+        <div class="success" id="successMsg"></div>
+        <div class="login-link">
+            لديك حساب بالفعل؟ <a href="/login.html">تسجيل الدخول</a>
+        </div>
+    </div>
+
+    <!-- إضافات عامة -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <a href="https://wa.me/218915727716?text=مرحباً، أحتاج مساعدة في إنشاء حساب" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script>
+        // الوضع الليلي
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(e => console.log);
+        }
+
+        async function register() {
+            const username = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
+            const errorDiv = document.getElementById('errorMsg');
+            const successDiv = document.getElementById('successMsg');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            if (!username || !email || !password) {
+                errorDiv.innerText = 'جميع الحقول مطلوبة';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            if (password !== confirm) {
+                errorDiv.innerText = 'كلمتا المرور غير متطابقتين';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            if (password.length < 6) {
+                errorDiv.innerText = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    successDiv.innerText = 'تم التسجيل بنجاح! يمكنك الآن تسجيل الدخول.';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    errorDiv.innerText = data.error || 'حدث خطأ';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.innerText = 'فشل الاتصال بالخادم';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        window.toggleDarkMode = toggleDarkMode;
+        window.register = register;
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</body>
+
+</html>

@@ -3,21 +3,32 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>حسابي - Absi stor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    <link rel="stylesheet" href="/styles.css">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFDD8Q8VFG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
         }
-        
+        gtag('js', new Date());
+        gtag('config', 'G-HFDD8Q8VFG');
+    </script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a4a6f">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <style>
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
             background: #f0f2f5;
             direction: rtl;
             padding: 20px;
+            transition: background 0.3s, color 0.3s;
         }
         
         .container {
@@ -26,11 +37,29 @@
             background: white;
             border-radius: 24px;
             padding: 2rem;
+            transition: background 0.3s;
         }
         
         h1 {
             color: #1a4a6f;
             margin-bottom: 1rem;
+        }
+        
+        .points-card {
+            background: #e8f0fe;
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .points-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2a5298;
         }
         
         .order-card {
@@ -64,18 +93,34 @@
         }
         
         button {
-            background: #e74c3c;
+            background: #2a5298;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 30px;
             color: white;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 10px;
+        }
+        
+        .btn-reorder {
+            background: #27ae60;
+            margin-left: 10px;
         }
         
         .login-msg {
             text-align: center;
             padding: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            .points-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
         }
     </style>
 </head>
@@ -83,7 +128,60 @@
 <body>
     <div class="container" id="accountContent"></div>
 
+    <!-- الإضافات: وضع ليلي + واتساب عائم -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <a href="https://wa.me/218915727716?text=مرحباً، أحتاج مساعدة بخصوص حسابي في Absi stor" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
     <script>
+        // الوضع الليلي و Service Worker
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+
+        // جلب نقاط الولاء
+        async function fetchLoyaltyPoints() {
+            try {
+                const res = await fetch('/api/account/loyalty');
+                const data = await res.json();
+                if (data.success) return data.points;
+            } catch (e) {
+                return 0;
+            }
+            return 0;
+        }
+
+        // إعادة الطلب
+        async function reorder(orderId) {
+            const res = await fetch(`/api/account/reorder/${orderId}`);
+            const data = await res.json();
+            if (data.success && data.cartItems) {
+                let cart = localStorage.getItem('absi_cart');
+                cart = cart ? JSON.parse(cart) : [];
+                // إضافة العناصر إلى السلة الحالية
+                data.cartItems.forEach(item => {
+                    const existing = cart.find(i => i.productId === item.productId && i.variantId === item.variantId);
+                    if (existing) existing.quantity += item.quantity;
+                    else cart.push({
+                        productId: item.productId,
+                        quantity: item.quantity,
+                        variantId: item.variantId,
+                        name: '',
+                        price: 0
+                    });
+                });
+                localStorage.setItem('absi_cart', JSON.stringify(cart));
+                alert('تمت إضافة المنتجات إلى السلة، سيتم تحويلك إلى المتجر');
+                window.location.href = '/shop.html';
+            } else {
+                alert('حدث خطأ أثناء إعادة الطلب');
+            }
+        }
+
         async function loadAccount() {
             const userId = localStorage.getItem('userId');
             const userName = localStorage.getItem('userName');
@@ -91,22 +189,33 @@
                 document.getElementById('accountContent').innerHTML = `
                 <div class="login-msg">
                     <h2>🔐 الرجاء تسجيل الدخول</h2>
-                    <button onclick="location.href='/login.html'">تسجيل الدخول</button>
+                    <button onclick="location.href='/shop.html'">تسجيل الدخول</button>
                 </div>`;
                 return;
             }
-            // جلب الطلبات
-            const res = await fetch('/api/account/orders');
-            if (res.status === 401) {
+
+            // جلب الطلبات ونقاط الولاء
+            const [ordersRes, points] = await Promise.all([
+                fetch('/api/account/orders'),
+                fetchLoyaltyPoints()
+            ]);
+            if (ordersRes.status === 401) {
                 localStorage.clear();
                 location.reload();
                 return;
             }
-            const data = await res.json();
+            const ordersData = await ordersRes.json();
+
             let html = `<h1><i class="fas fa-user-circle"></i> مرحباً ${userName}</h1>`;
-            if (data.success && data.data.length) {
-                html += `<h3>طلباتي السابقة (${data.data.length})</h3>`;
-                data.data.forEach(order => {
+            html += `<div class="points-card">
+                    <span><i class="fas fa-gift"></i> نقاط الولاء المتاحة:</span>
+                    <span class="points-value">${points} نقطة</span>
+                    <span>100 نقطة = 1 ريال خصم عند إتمام الشراء</span>
+                </div>`;
+
+            if (ordersData.success && ordersData.data.length) {
+                html += `<h3>طلباتي السابقة (${ordersData.data.length})</h3>`;
+                ordersData.data.forEach(order => {
                             let statusClass = '';
                             if (order.status === 'قيد المراجعة') statusClass = 'status-pending';
                             else if (order.status === 'تم التجهيز') statusClass = 'status-shipped';
@@ -116,9 +225,10 @@
                             <div><strong>التاريخ:</strong> ${new Date(order.date).toLocaleDateString()}</div>
                             <div><strong>الإجمالي:</strong> ${order.total} ريال</div>
                             <div><strong>الحالة:</strong> <span class="order-status ${statusClass}">${order.status}</span></div>
-                            <details><summary>تفاصيل المنتجات</summary>
+                            <details><summary>📦 تفاصيل المنتجات</summary>
                             <ul>${order.items.map(i => `<li>${i.name} × ${i.quantity} = ${i.price * i.quantity} ريال</li>`).join('')}</ul>
                             </details>
+                            <button class="btn-reorder" onclick="reorder('${order.orderId}')"><i class="fas fa-redo-alt"></i> إعادة الطلب</button>
                          </div>`;
             });
         } else {
@@ -127,12 +237,17 @@
         html += `<button onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>`;
         document.getElementById('accountContent').innerHTML = html;
     }
+
     async function logout() {
         await fetch('/api/logout', { method: 'POST' });
         localStorage.clear();
         window.location.href = '/shop.html';
     }
+
     loadAccount();
+    window.toggleDarkMode = toggleDarkMode;
+    window.logout = logout;
+    window.reorder = reorder;
     </script>
 </body>
 

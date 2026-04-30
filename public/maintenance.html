@@ -3,9 +3,28 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>المتجر في صيانة - Absi stor</title>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFDD8Q8VFG"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-HFDD8Q8VFG');
+    </script>
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a4a6f">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <!-- Styles -->
+    <link rel="stylesheet" href="/styles.css">
     <style>
+        /* الأنماط الأصلية (محفوظة مع تعديلات بسيطة للوضع الليلي) */
+        
         * {
             margin: 0;
             padding: 0;
@@ -20,6 +39,25 @@
             align-items: center;
             height: 100vh;
             direction: rtl;
+            transition: background 0.3s;
+        }
+        
+        body.dark-mode {
+            background: #121212;
+        }
+        
+        body.dark-mode .maintenance-box {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border: 1px solid #333;
+        }
+        
+        body.dark-mode h1 {
+            color: #ffc107;
+        }
+        
+        body.dark-mode p {
+            color: #cccccc;
         }
         
         .maintenance-box {
@@ -29,6 +67,7 @@
             text-align: center;
             max-width: 500px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, color 0.3s;
         }
         
         .icon {
@@ -45,6 +84,17 @@
             color: #4a5568;
             line-height: 1.6;
         }
+        
+        .maintenance-box {
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 480px) {
+            .maintenance-box {
+                width: 90%;
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -55,8 +105,29 @@
         <p id="maintenanceMessage">نعتذر للإزعاج، المتجر مغلق مؤقتاً للصيانة. سيعود قريباً.</p>
         <p>شكراً لتفهمك.</p>
     </div>
+
+    <!-- الإضافات الجديدة: وضع ليلي + واتساب عائم -->
+    <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
+    <a href="https://wa.me/218915727716?text=مرحباً، أحتاج مساعدة لأن المتجر في وضع الصيانة" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
     <script>
-        // يمكن جلب الرسالة من الـ API إذا أردت
+        // ================== الإضافات الجديدة (الوضع الليلي، Service Worker) ==================
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered', reg))
+                .catch(err => console.log('Service Worker failed', err));
+        }
+
+        // ================== الكود الأصلي لجلب رسالة الصيانة ==================
         async function loadMessage() {
             try {
                 const res = await fetch('/api/admin/settings');
@@ -64,10 +135,18 @@
                 if (data.data && data.data.maintenanceMessage) {
                     document.getElementById('maintenanceMessage').innerText = data.data.maintenanceMessage;
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error('Error loading maintenance message:', e);
+            }
         }
         loadMessage();
+
+        // ربط الدوال العامة (لضمان عمل زر الوضع الليلي)
+        window.toggleDarkMode = toggleDarkMode;
     </script>
+
+    <!-- إضافة أيقونات FontAwesome (للأزرار العائمة) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 
 </html>
