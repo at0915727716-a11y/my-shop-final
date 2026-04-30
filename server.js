@@ -127,18 +127,27 @@ const isAdmin = (req, res, next) => {
     res.status(401).json({ error: 'غير مصرح' });
 };
 
-// Email
+// ========== Email with Resend (SMTP) ==========
 let transporter = null;
-if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+if (process.env.RESEND_API_KEY) {
     transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+        host: "smtp.resend.com",
+        port: 465,
+        secure: true,
+        auth: {
+            user: "resend",
+            pass: process.env.RESEND_API_KEY,
+        },
     });
+    console.log('✅ Resend email transporter configured');
+} else {
+    console.warn('⚠️ RESEND_API_KEY not found, email features disabled');
 }
+
 const sendEmail = async (to, subject, html) => {
     if (!transporter) return;
     try {
-        await transporter.sendMail({ from: process.env.EMAIL_USER, to, subject, html });
+        await transporter.sendMail({ from: process.env.EMAIL_FROM || 'onboarding@resend.dev', to, subject, html });
     } catch (err) { console.error('Email error:', err); }
 };
 
@@ -636,7 +645,6 @@ app.post('/api/register', [
         const verificationToken = crypto.randomBytes(32).toString('hex');
         const user = new User({ username, email, passwordHash: hash, verificationToken, verified: false });
         await user.save();
-        // رابط التفعيل - تم تعديله لاستخدام النطاق الصحيح
         const verifyLink = `https://my-shop-final.onrender.com/verify-email.html?token=${verificationToken}`;
         await sendEmail(email, 'تفعيل حسابك في Absi stor', `<p>مرحباً ${username}, اضغط على الرابط لتفعيل حسابك: <a href="${verifyLink}">${verifyLink}</a></p>`);
         res.json({ success: true, message: 'تم التسجيل، يرجى تفعيل حسابك عبر البريد' });
@@ -720,7 +728,6 @@ app.post('/api/forgot-password', async (req, res) => {
     user.resetPasswordToken = token;
     user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
-    // رابط إعادة التعيين - تم تعديله لاستخدام النطاق الصحيح
     const resetLink = `https://my-shop-final.onrender.com/reset-password.html?token=${token}`;
     await sendEmail(email, 'إعادة تعيين كلمة المرور', `<p>اضغط على الرابط: <a href="${resetLink}">${resetLink}</a></p>`);
     res.json({ success: true });
