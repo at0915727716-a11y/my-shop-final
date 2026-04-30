@@ -39,8 +39,8 @@ const Review = require('./models/Review');
 const Settings = require('./models/Settings');
 const Admin = require('./models/Admin');
 const Wishlist = require('./models/Wishlist');
-const OrderArchive = require('./models/OrderArchive'); // جديد
-const Offer = require('./models/Offer'); // جديد
+const OrderArchive = require('./models/OrderArchive');
+const Offer = require('./models/Offer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -142,7 +142,7 @@ const sendEmail = async (to, subject, html) => {
     } catch (err) { console.error('Email error:', err); }
 };
 
-// ========== Multer + Cloudinary (multiple images support) ==========
+// ========== Multer + Cloudinary ==========
 const storage = new CloudinaryStorage({
     cloudinary,
     params: async (req, file) => ({
@@ -184,7 +184,6 @@ if (environment()) {
     paypalClient = new paypal.core.PayPalHttpClient(environment());
 }
 
-// Create PayPal order
 app.post('/api/create-paypal-order', async (req, res) => {
     if (!paypalClient) return res.status(501).json({ error: 'PayPal not configured' });
     const { total, currency = 'USD' } = req.body;
@@ -204,7 +203,6 @@ app.post('/api/create-paypal-order', async (req, res) => {
     }
 });
 
-// Capture PayPal order
 app.post('/api/capture-paypal-order', async (req, res) => {
     if (!paypalClient) return res.status(501).json({ error: 'PayPal not configured' });
     const { orderID } = req.body;
@@ -218,7 +216,7 @@ app.post('/api/capture-paypal-order', async (req, res) => {
     }
 });
 
-// ========== Socket.io for real-time notifications ==========
+// ========== Socket.io ==========
 const http = require('http');
 const serverSocket = http.createServer(app);
 const { Server } = require('socket.io');
@@ -247,7 +245,6 @@ function notifyUser(userId, event, data) {
 app.get('/api/products', async (req, res) => {
     try {
         let products = await Product.find();
-        // جلب العروض النشطة
         const offers = await Offer.find({ active: true, startDate: { $lte: new Date() }, endDate: { $gte: new Date() } });
         products = products.map(p => {
             let maxDiscount = p.discountPercent || 0;
@@ -280,7 +277,7 @@ app.get('/api/products/:id', async (req, res) => {
     }
 });
 
-// ========== 2. Admin Products Management (with gallery support) ==========
+// ========== 2. Admin Products Management ==========
 app.post('/api/admin/products', isAdmin, upload.single('productImage'), validateProduct, async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
@@ -334,7 +331,7 @@ app.delete('/api/admin/products/:id', isAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ========== 3. Orders (with advanced coupon logic) ==========
+// ========== 3. Orders ==========
 const SHIPPING_COSTS = { standard: 10, express: 25, pickup: 0 };
 app.post('/api/orders', [
     body('customerName').notEmpty(),
@@ -366,7 +363,6 @@ app.post('/api/orders', [
             }
         }
 
-        // خصم الكوبون (متقدم)
         let discount = 0;
         let usedCoupon = null;
         if (couponCode) {
@@ -393,7 +389,6 @@ app.post('/api/orders', [
             }
         }
 
-        // خصم نقاط الولاء
         let pointsRedeemed = 0;
         let pointsDiscount = 0;
         let user = null;
@@ -429,7 +424,6 @@ app.post('/api/orders', [
         }
         await newOrder.save();
 
-        // تحديث المخزون وإضافة نقاط ولاء
         let pointsEarned = 0;
         for (const { product, quantity, variant } of itemsData) {
             if (variant) {
@@ -460,7 +454,6 @@ app.post('/api/orders', [
             sendEmail(process.env.ADMIN_EMAIL, `طلب جديد #${orderId}`, `<h3>طلب جديد</h3><p>${customerName}</p>`);
         }
 
-        // إشعار للمستخدم عبر Socket.io
         if (customerEmail) {
             const userDb = await User.findOne({ email: customerEmail });
             if (userDb) notifyUser(userDb.id, 'newOrder', { orderId, total: finalTotal });
@@ -488,7 +481,7 @@ app.post('/api/admin/login', async (req, res) => {
 });
 app.post('/api/admin/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
 
-// ========== 5. Admin Orders (with socket notification on status change) ==========
+// ========== 5. Admin Orders ==========
 app.get('/api/admin/orders', isAdmin, async (req, res) => {
     const orders = await Order.find().sort({ date: -1 });
     res.json({ success: true, data: orders });
@@ -544,7 +537,7 @@ app.put('/api/admin/settings', isAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== 9. Coupons (advanced) ==========
+// ========== 9. Coupons ==========
 app.get('/api/admin/coupons', isAdmin, async (req, res) => {
     const coupons = await Coupon.find();
     res.json({ success: true, data: coupons });
@@ -628,7 +621,7 @@ app.get('/sitemap.xml', async (req, res) => {
     res.send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`);
 });
 
-// ========== 14. User Accounts & Loyalty (with new features) ==========
+// ========== 14. User Accounts & Loyalty ==========
 app.post('/api/register', [
     body('username').notEmpty(),
     body('email').isEmail(),
@@ -643,8 +636,8 @@ app.post('/api/register', [
         const verificationToken = crypto.randomBytes(32).toString('hex');
         const user = new User({ username, email, passwordHash: hash, verificationToken, verified: false });
         await user.save();
-        // إرسال رابط التفعيل
-        const verifyLink = `https://yourdomain.com/verify-email.html?token=${verificationToken}`;
+        // رابط التفعيل - تم تعديله لاستخدام النطاق الصحيح
+        const verifyLink = `https://my-shop-final.onrender.com/verify-email.html?token=${verificationToken}`;
         await sendEmail(email, 'تفعيل حسابك في Absi stor', `<p>مرحباً ${username}, اضغط على الرابط لتفعيل حسابك: <a href="${verifyLink}">${verifyLink}</a></p>`);
         res.json({ success: true, message: 'تم التسجيل، يرجى تفعيل حسابك عبر البريد' });
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -700,7 +693,7 @@ app.get('/api/account/loyalty', async (req, res) => {
     res.json({ success: true, points: user.loyaltyPoints });
 });
 
-// ========== 14b. Edit Profile ==========
+// ========== Edit Profile ==========
 app.put('/api/account/profile', async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
     const { username, email } = req.body;
@@ -718,7 +711,7 @@ app.put('/api/account/profile', async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== 14c. Forgot / Reset Password ==========
+// ========== Forgot / Reset Password ==========
 app.post('/api/forgot-password', async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
@@ -727,7 +720,8 @@ app.post('/api/forgot-password', async (req, res) => {
     user.resetPasswordToken = token;
     user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
-    const resetLink = `https://yourdomain.com/reset-password.html?token=${token}`;
+    // رابط إعادة التعيين - تم تعديله لاستخدام النطاق الصحيح
+    const resetLink = `https://my-shop-final.onrender.com/reset-password.html?token=${token}`;
     await sendEmail(email, 'إعادة تعيين كلمة المرور', `<p>اضغط على الرابط: <a href="${resetLink}">${resetLink}</a></p>`);
     res.json({ success: true });
 });
@@ -743,7 +737,7 @@ app.post('/api/reset-password', async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== 14d. Sync Cart with Server ==========
+// ========== Sync Cart with Server ==========
 app.post('/api/cart/sync', async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
     const { cart } = req.body;
@@ -757,7 +751,7 @@ app.get('/api/cart/sync', async (req, res) => {
     res.json({ cart: user.cart || [] });
 });
 
-// ========== 15. Wishlist ==========
+// ========== Wishlist ==========
 app.get('/api/wishlist', async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'تسجيل دخول مطلوب' });
     const wishlist = await Wishlist.find({ userId: req.session.userId });
@@ -777,7 +771,7 @@ app.delete('/api/wishlist/:productId', async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== 16. Advanced Reports (Excel) ==========
+// ========== Advanced Reports (Excel) ==========
 app.get('/api/admin/reports/sales', isAdmin, async (req, res) => {
     const orders = await Order.find().sort({ date: -1 });
     const workbook = new ExcelJS.Workbook();
@@ -804,12 +798,12 @@ app.get('/api/admin/reports/sales', isAdmin, async (req, res) => {
     res.end();
 });
 
-// ========== 17. Health Check ==========
+// ========== Health Check ==========
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime(), mongo: mongoose.connection.readyState === 1 });
 });
 
-// ========== 18. PDF Invoice ==========
+// ========== PDF Invoice ==========
 app.get('/api/orders/:id/invoice', isAdmin, async (req, res) => {
     const order = await Order.findOne({ orderId: req.params.id });
     if (!order) return res.status(404).json({ error: 'الطلب غير موجود' });
@@ -834,7 +828,7 @@ app.get('/api/orders/:id/invoice', isAdmin, async (req, res) => {
     doc.end();
 });
 
-// ========== 19. Archive Old Orders (Admin) ==========
+// ========== Archive Old Orders ==========
 app.post('/api/admin/archive-orders', isAdmin, async (req, res) => {
     try {
         const oneYearAgo = new Date();
@@ -852,7 +846,7 @@ app.post('/api/admin/archive-orders', isAdmin, async (req, res) => {
     }
 });
 
-// ========== 20. Offers Management ==========
+// ========== Offers Management ==========
 app.get('/api/admin/offers', isAdmin, async (req, res) => {
     const offers = await Offer.find();
     res.json({ success: true, data: offers });
@@ -875,7 +869,7 @@ app.delete('/api/admin/offers/:id', isAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== 21. Migration from JSON ==========
+// ========== Migration from JSON ==========
 app.post('/api/admin/migrate-from-json', isAdmin, async (req, res) => {
     const dataDir = path.join(__dirname, 'data');
     try {
@@ -891,7 +885,7 @@ app.post('/api/admin/migrate-from-json', isAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ========== 22. Scheduled Backup (cron daily at 3 AM) ==========
+// ========== Scheduled Backup (cron daily at 3 AM) ==========
 cron.schedule('0 3 * * *', () => {
     console.log('🔄 Running scheduled backup...');
     const { exec } = require('child_process');
