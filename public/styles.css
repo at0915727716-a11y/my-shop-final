@@ -192,6 +192,62 @@ tr:hover td {
 }
 
 
+/* تحسين عرض صور المنتجات في جدول لوحة التحكم */
+
+#productsTable img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+
+/* شارات حالة الطلب (جديد) */
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    min-width: 80px;
+}
+
+.status-pending {
+    background: #f39c12;
+}
+
+.status-processing {
+    background: #3498db;
+}
+
+.status-delivered {
+    background: #27ae60;
+}
+
+
+/* عمود المنتجات في جدول الطلبات */
+
+.products-cell {
+    max-width: 200px;
+    white-space: normal;
+    word-break: break-word;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+
+/* أزرار تغيير الحالة */
+
+.btn-status {
+    background: #6c757d;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+}
+
+
 /* ========== Side Cart ========== */
 
 .side-cart {
@@ -1003,4 +1059,136 @@ body.dark-mode .tab-btn {
 body.dark-mode .tab-btn.active {
     background: #2a5298;
     color: white;
+}
+
+
+/* ========== الأنماط الجديدة لإدارة الأدمن والتقارير الجغرافية وتغيير كلمة المرور والطباعة ========== */
+
+
+/* تحسين الجداول الإدارية */
+
+.admins-table-wrapper,
+.geo-table-wrapper {
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: 1rem;
+}
+
+
+/* أزرار الإجراءات في جداول الأدمن */
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+
+/* تنسيق نموذج تغيير كلمة المرور */
+
+.password-change-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+
+/* تنسيق التقارير الجغرافية */
+
+.geo-filters {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.geo-chart-container {
+    margin-top: 1.5rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+
+/* تنسيق رسائل الحالة */
+
+.status-message {
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    margin: 1rem 0;
+}
+
+.status-success {
+    background: #d4edda;
+    color: #155724;
+    border-right: 4px solid #28a745;
+}
+
+.status-error {
+    background: #f8d7da;
+    color: #721c24;
+    border-right: 4px solid #dc3545;
+}
+
+
+/* تحسين المودالات الصغيرة */
+
+.modal-sm {
+    max-width: 400px;
+}
+
+
+/* دعم الوضع الليلي للعناصر الجديدة */
+
+body.dark-mode .geo-filters,
+body.dark-mode .geo-chart-container {
+    background: #2d2d2d;
+    color: #e0e0e0;
+}
+
+body.dark-mode .status-success {
+    background: #1e3a2f;
+    color: #a7f3d0;
+    border-right-color: #27ae60;
+}
+
+body.dark-mode .status-error {
+    background: #3a1e1e;
+    color: #fecaca;
+    border-right-color: #e74c3c;
+}
+
+
+/* تحسين الطباعة للفاتورة */
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    .invoice-print {
+        margin: 0;
+        padding: 0;
+        background: white;
+        color: black;
+    }
+    body.dark-mode .invoice-print {
+        background: white;
+        color: black;
+    }
+}
+
+
+/* ========== دعم الوضع الليلي لشارات الحالة ========== */
+
+body.dark-mode .status-pending {
+    background: #e67e22;
+}
+
+body.dark-mode .status-processing {
+    background: #2980b9;
+}
+
+body.dark-mode .status-delivered {
+    background: #1e8449;
 }

@@ -9,6 +9,12 @@ const variantSchema = new mongoose.Schema({
     stock: { type: Number, required: true, default: 0 }
 });
 
+// مخطط الخصم التصاعدي (tiered pricing)
+const tieredPricingSchema = new mongoose.Schema({
+    minQty: { type: Number, required: true }, // الحد الأدنى للكمية
+    discountPercent: { type: Number, required: true, min: 0, max: 100 } // نسبة الخصم
+});
+
 const productSchema = new mongoose.Schema({
     id: { type: String, default: () => uuidv4(), unique: true },
     name: { type: String, required: true },
@@ -23,9 +29,12 @@ const productSchema = new mongoose.Schema({
     // المتغيرات (اختياري)
     variants: [variantSchema],
 
-    // ========== إضافة جديدة ==========
     // معرض صور إضافية (صور متعددة)
-    gallery: { type: [String], default: [] } // مصفوفة من عناوين URL للصور الإضافية
+    gallery: { type: [String], default: [] },
+
+    // ========== الإضافات الجديدة للكميات التصاعدية والجملة ==========
+    tieredPricing: [tieredPricingSchema], // الخصومات التصاعدية (مثال: [{minQty:3, discountPercent:5}, {minQty:5, discountPercent:10}])
+    minimumOrderQty: { type: Number, default: 1 } // الحد الأدنى للطلب (لبيع الجملة)
 });
 
 // فهارس صحيحة بدون تكرار

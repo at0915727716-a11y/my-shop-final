@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>لوحة التحكم - Absi stor (الميزات الكاملة)</title>
+    <title>لوحة التحكم المتقدمة - Absi stor</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Chart.js -->
@@ -25,7 +25,7 @@
     <meta name="theme-color" content="#1a4a6f">
     <link rel="apple-touch-icon" href="/icon-192.png">
     <style>
-        /* === الأنماط الأساسية === */
+        /* ========== الأنماط الأساسية (موجودة ومحسنة) ========== */
         
         * {
             margin: 0;
@@ -50,7 +50,7 @@
             width: 280px;
             background: linear-gradient(180deg, #0f2b3d 0%, #1a4a6f 100%);
             color: white;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             display: flex;
             flex-direction: column;
             position: fixed;
@@ -108,7 +108,7 @@
             flex: 1;
             margin-right: 280px;
             padding: 1.5rem;
-            transition: margin-right 0.3s ease;
+            transition: margin-right 0.3s;
         }
         
         .menu-toggle {
@@ -126,7 +126,6 @@
             font-size: 1.2rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        /* البطاقات */
         
         .stats-grid {
             display: grid;
@@ -141,7 +140,6 @@
             border-radius: 24px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
         }
         
         .stat-card h3 {
@@ -149,7 +147,6 @@
             color: #1a4a6f;
             margin-bottom: 0.5rem;
         }
-        /* الجداول */
         
         .table-responsive {
             overflow-x: auto;
@@ -181,7 +178,6 @@
         tr:hover td {
             background: #f8f9fa;
         }
-        /* الأزرار */
         
         button {
             background: #2a5298;
@@ -228,7 +224,6 @@
         .btn-warning {
             background: #f39c12;
         }
-        /* التنبيهات */
         
         .alert-item {
             background: #fef3c7;
@@ -241,7 +236,6 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        /* المودالات */
         
         .modal {
             display: none;
@@ -316,6 +310,88 @@
         hr {
             margin: 1rem 0;
         }
+        /* ========== الأنماط الجديدة ========== */
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #f39c12;
+        }
+        
+        .status-processing {
+            background: #3498db;
+        }
+        
+        .status-delivered {
+            background: #27ae60;
+        }
+        
+        .products-cell {
+            max-width: 200px;
+            white-space: normal;
+            word-break: break-word;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        
+        .admins-table-wrapper,
+        .geo-table-wrapper {
+            overflow-x: auto;
+            margin-top: 1rem;
+            border-radius: 1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .geo-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .geo-chart-container {
+            margin-top: 1.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-message {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border-right: 4px solid #28a745;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-right: 4px solid #dc3545;
+        }
+        
+        .modal-sm {
+            max-width: 400px;
+        }
+        /* دعم الوضع الليلي */
         
         @media (max-width: 992px) {
             .sidebar {
@@ -346,7 +422,6 @@
                 width: 95%;
             }
         }
-        /* الوضع الليلي */
         
         body.dark-mode {
             background: #121212;
@@ -356,7 +431,9 @@
         body.dark-mode .stat-card,
         body.dark-mode .table-responsive,
         body.dark-mode .modal-content,
-        body.dark-mode .alert-item {
+        body.dark-mode .alert-item,
+        body.dark-mode .geo-filters,
+        body.dark-mode .geo-chart-container {
             background: #1e1e1e;
             color: #e0e0e0;
             border-color: #333;
@@ -373,6 +450,30 @@
         
         body.dark-mode .sidebar {
             background: #0a1a2a;
+        }
+        
+        body.dark-mode .status-pending {
+            background: #e67e22;
+        }
+        
+        body.dark-mode .status-processing {
+            background: #2980b9;
+        }
+        
+        body.dark-mode .status-delivered {
+            background: #1e8449;
+        }
+        
+        body.dark-mode .status-success {
+            background: #1e3a2f;
+            color: #a7f3d0;
+            border-right-color: #27ae60;
+        }
+        
+        body.dark-mode .status-error {
+            background: #3a1e1e;
+            color: #fecaca;
+            border-right-color: #e74c3c;
         }
         
         .dark-mode-toggle,
@@ -416,6 +517,8 @@
                     <li data-section="reviews"><i class="fas fa-star"></i> التقييمات</li>
                     <li data-section="stats"><i class="fas fa-chart-line"></i> الإحصائيات</li>
                     <li data-section="users"><i class="fas fa-users"></i> المستخدمين</li>
+                    <li data-section="admins"><i class="fas fa-user-shield"></i> إدارة الأدمن</li>
+                    <li data-section="geo"><i class="fas fa-map-marker-alt"></i> تقارير جغرافية</li>
                     <li data-section="archive"><i class="fas fa-archive"></i> أرشيف الطلبات</li>
                     <li data-section="settings"><i class="fas fa-cog"></i> الإعدادات</li>
                 </ul>
@@ -424,40 +527,53 @@
         </div>
         <div class="main-content">
             <div class="stats-grid" id="statsCards"></div>
-            <!-- قسم المنتجات (مع دعم المتغيرات ومعرض الصور) -->
+
+            <!-- قسم المنتجات -->
             <div id="productsSection" class="section">
                 <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
-                    <h2><i class="fas fa-box"></i> المنتجات</h2><button onclick="openProductModal()"><i class="fas fa-plus"></i> إضافة منتج</button></div>
+                    <h2><i class="fas fa-box"></i> المنتجات</h2>
+                    <button onclick="openProductModal()"><i class="fas fa-plus"></i> إضافة منتج</button>
+                </div>
                 <div class="table-responsive" id="productsTable"></div>
             </div>
-            <!-- الطلبات -->
+
+            <!-- قسم الطلبات (مطور) -->
             <div id="ordersSection" class="section" style="display:none;">
                 <h2><i class="fas fa-shopping-cart"></i> الطلبات</h2>
                 <button onclick="exportOrdersCSV()"><i class="fas fa-file-csv"></i> تصدير CSV</button>
                 <div class="table-responsive" id="ordersTable"></div>
             </div>
-            <!-- الكوبونات -->
+
+            <!-- كوبونات -->
             <div id="couponsSection" class="section" style="display:none;">
                 <div style="display:flex; justify-content:space-between;">
-                    <h2><i class="fas fa-ticket-alt"></i> كوبونات الخصم</h2><button onclick="openCouponModal()"><i class="fas fa-plus"></i> إضافة كوبون</button></div>
+                    <h2><i class="fas fa-ticket-alt"></i> كوبونات الخصم</h2>
+                    <button onclick="openCouponModal()"><i class="fas fa-plus"></i> إضافة كوبون</button>
+                </div>
                 <div class="table-responsive" id="couponsTable"></div>
             </div>
-            <!-- العروض (جديد) -->
+
+            <!-- العروض -->
             <div id="offersSection" class="section" style="display:none;">
                 <div style="display:flex; justify-content:space-between;">
-                    <h2><i class="fas fa-percent"></i> العروض الترويجية</h2><button onclick="openOfferModal()"><i class="fas fa-plus"></i> إضافة عرض</button></div>
+                    <h2><i class="fas fa-percent"></i> العروض الترويجية</h2>
+                    <button onclick="openOfferModal()"><i class="fas fa-plus"></i> إضافة عرض</button>
+                </div>
                 <div class="table-responsive" id="offersTable"></div>
             </div>
+
             <!-- التنبيهات -->
             <div id="alertsSection" class="section" style="display:none;">
                 <h2><i class="fas fa-exclamation-triangle"></i> تنبيهات نقص المخزون</h2>
                 <div id="alertsList"></div>
             </div>
+
             <!-- التقييمات -->
             <div id="reviewsSection" class="section" style="display:none;">
                 <h2><i class="fas fa-star"></i> تقييمات العملاء</h2>
                 <div id="reviewsList" class="table-responsive"></div>
             </div>
+
             <!-- الإحصائيات -->
             <div id="statsSection" class="section" style="display:none;">
                 <h2>📊 إحصائيات متقدمة</h2>
@@ -470,27 +586,53 @@
                 <div class="table-responsive" style="margin-top:1rem;" id="topProductsList"></div>
                 <button onclick="downloadSalesReport()" class="btn-success" style="margin-top:1rem;"><i class="fas fa-file-excel"></i> تصدير تقرير المبيعات (Excel)</button>
             </div>
+
             <!-- المستخدمين -->
             <div id="usersSection" class="section" style="display:none;">
                 <h2><i class="fas fa-users"></i> العملاء المسجلون</h2>
                 <div class="table-responsive" id="usersTable"></div>
                 <button onclick="sendNewsletter()" class="btn-secondary" style="margin-top:1rem;"><i class="fas fa-envelope"></i> إرسال نشرة بريدية للجميع</button>
             </div>
-            <!-- أرشيف الطلبات (جديد) -->
+
+            <!-- إدارة الأدمن (جديد) -->
+            <div id="adminsSection" class="section" style="display:none;">
+                <h2><i class="fas fa-user-shield"></i> إدارة الأدمن والمشرفين</h2>
+                <button onclick="openCreateAdminModal()" class="btn-success"><i class="fas fa-plus"></i> إضافة أدمن جديد</button>
+                <div class="table-responsive" id="adminsTable"></div>
+                <div style="margin-top:1rem;">
+                    <button onclick="changeMyPassword()" class="btn-warning"><i class="fas fa-key"></i> تغيير كلمة المرور الخاصة بي</button>
+                </div>
+            </div>
+
+            <!-- التقارير الجغرافية (جديد) -->
+            <div id="geoSection" class="section" style="display:none;">
+                <h2><i class="fas fa-map-marker-alt"></i> المبيعات حسب الموقع</h2>
+                <div class="geo-filters">
+                    <div class="form-group"><label>التجميع حسب</label><select id="geoGroupBy"><option value="city">المدينة</option><option value="country">البلد</option></select></div>
+                    <div class="form-group"><label>من تاريخ</label><input type="date" id="geoFromDate"></div>
+                    <div class="form-group"><label>إلى تاريخ</label><input type="date" id="geoToDate"></div>
+                    <button onclick="loadGeoReport()" class="btn-success">عرض التقرير</button>
+                </div>
+                <div class="table-responsive" id="geoReportTable"></div>
+                <div class="geo-chart-container"><canvas id="geoChart" width="400" height="200"></canvas></div>
+            </div>
+
+            <!-- أرشيف الطلبات -->
             <div id="archiveSection" class="section" style="display:none;">
                 <h2><i class="fas fa-archive"></i> أرشيف الطلبات</h2>
                 <button onclick="archiveOldOrders()" class="btn-warning"><i class="fas fa-archive"></i> أرشفة الطلبات القديمة (أكثر من سنة)</button>
                 <div id="archiveResult" style="margin-top:1rem;"></div>
                 <div class="table-responsive" id="archiveOrdersTable"></div>
             </div>
-            <!-- الإعدادات (مع تحكم في تكاليف الشحن و PayPal) -->
+
+            <!-- الإعدادات -->
             <div id="settingsSection" class="section" style="display:none;">
                 <h2>⚙️ إعدادات المتجر</h2>
                 <div style="background:white; padding:1.5rem; border-radius:24px;">
                     <div class="form-group"><label>وضع الصيانة</label><select id="maintenanceMode"><option value="false">🟢 مفتوح</option><option value="true">🔴 صيانة</option></select></div>
                     <div class="form-group"><label>رسالة الصيانة</label><input type="text" id="maintenanceMsg"></div>
-                    <div class="form-group"><label>تكلفة الشحن العادي (ريال)</label><input type="number" id="shippingStandard" value="10"></div>
-                    <div class="form-group"><label>تكلفة الشحن السريع (ريال)</label><input type="number" id="shippingExpress" value="25"></div>
+                    <div class="form-group"><label>تكلفة الشحن العادي (دينار)</label><input type="number" id="shippingStandard" value="10"></div>
+                    <div class="form-group"><label>تكلفة الشحن السريع (دينار)</label><input type="number" id="shippingExpress" value="25"></div>
                     <div class="form-group"><label>تفعيل الدفع عبر PayPal</label><select id="paypalEnabled"><option value="true">مفعل</option><option value="false">معطل</option></select></div>
                     <button onclick="updateShippingSettings()" class="btn-success">حفظ تكاليف الشحن و PayPal</button>
                     <button onclick="updateSettings()" class="btn-secondary" style="margin-right:10px;">حفظ الإعدادات العامة</button>
@@ -505,36 +647,32 @@
         </div>
     </div>
 
-    <!-- الإضافات العامة -->
+    <!-- الأزرار العامة -->
     <div class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</div>
     <a href="https://wa.me/218915727716?text=مرحباً، أحتاج مساعدة في لوحة التحكم" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
 
-    <!-- Modal إضافة/تعديل منتج (مع متغيرات ومعرض صور) -->
+    <!-- مودال المنتج (مختصر، لكن الكود الأصلي موجود وسيتم نقله) -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeProductModal()">&times;</span>
             <h3 id="productModalTitle">إضافة منتج</h3>
             <div class="form-group"><label>اسم المنتج</label><input type="text" id="pName"></div>
-            <div class="form-group"><label>السعر (ريال)</label><input type="number" id="pPrice" step="0.01"></div>
+            <div class="form-group"><label>السعر (دينار)</label><input type="number" id="pPrice" step="0.01"></div>
             <div class="form-group"><label>المخزون الأساسي</label><input type="number" id="pStock"></div>
             <div class="form-group"><label>الوصف</label><textarea id="pDesc" rows="3"></textarea></div>
             <div class="form-group"><label>القسم</label><input type="text" id="pCategory" value="عام"></div>
             <div class="form-group"><label>الخصم %</label><input type="number" id="pDiscount" step="0.1" value="0"></div>
             <div class="form-group"><label>الصورة الرئيسية</label><input type="file" id="pImage" accept="image/*"><img id="pImagePreview" class="preview" style="display:none;"></div>
-            <div class="form-group"><label>معرض الصور الإضافية (روابط URL أو سيتم رفعها لاحقاً)</label>
-                <div id="galleryContainer"></div>
-                <button type="button" onclick="addGalleryField()" class="btn-secondary">+ إضافة صورة URL</button>
-            </div>
-            <div class="form-group"><label>المتغيرات (مقاس/لون) - اختياري</label>
-                <div id="variantsContainer"></div>
-                <button type="button" onclick="addVariantField()" class="btn-secondary">+ إضافة متغير</button>
-            </div>
+            <div class="form-group"><label>معرض الصور الإضافية (روابط URL)</label>
+                <div id="galleryContainer"></div><button type="button" onclick="addGalleryField()" class="btn-secondary">+ إضافة صورة URL</button></div>
+            <div class="form-group"><label>المتغيرات (مقاس/لون)</label>
+                <div id="variantsContainer"></div><button type="button" onclick="addVariantField()" class="btn-secondary">+ إضافة متغير</button></div>
             <input type="hidden" id="editId">
             <button onclick="saveProduct()" class="btn-success">حفظ المنتج</button>
         </div>
     </div>
 
-    <!-- Modal إضافة كوبون -->
+    <!-- مودال الكوبون -->
     <div id="couponModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeCouponModal()">&times;</span>
@@ -550,7 +688,7 @@
         </div>
     </div>
 
-    <!-- Modal إضافة/تعديل عرض (Offer) -->
+    <!-- مودال العرض -->
     <div id="offerModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeOfferModal()">&times;</span>
@@ -567,7 +705,7 @@
         </div>
     </div>
 
-    <!-- Modal الرد على تقييم -->
+    <!-- مودال الرد على التقييم -->
     <div id="replyModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeReplyModal()">&times;</span>
@@ -578,6 +716,29 @@
             <div class="form-group"><label>الرد من المدير</label><textarea id="replyText" rows="3"></textarea></div>
             <input type="hidden" id="replyReviewId">
             <button onclick="submitReply()" class="btn-success">إرسال الرد</button>
+        </div>
+    </div>
+
+    <!-- مودال إضافة أدمن جديد -->
+    <div id="createAdminModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCreateAdminModal()">&times;</span>
+            <h3>إضافة أدمن جديد</h3>
+            <div class="form-group"><label>الاسم</label><input type="text" id="adminName"></div>
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="adminEmail"></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="adminPassword"></div>
+            <button onclick="createAdmin()" class="btn-success">إنشاء</button>
+        </div>
+    </div>
+
+    <!-- مودال تغيير كلمة المرور -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeChangePasswordModal()">&times;</span>
+            <h3>تغيير كلمة المرور</h3>
+            <div class="form-group"><label>كلمة المرور الحالية</label><input type="password" id="oldPassword"></div>
+            <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="newPassword"></div>
+            <button onclick="submitChangePassword()" class="btn-success">تغيير</button>
         </div>
     </div>
 
@@ -602,7 +763,6 @@
         let variantCounter = 0,
             galleryCounter = 0;
 
-        // ------------------- دوال مساعدة عامة -------------------
         async function fetchAPI(url, options = {}) {
             const r = await fetch(url, options);
             if (!r.ok) throw new Error(await r.text());
@@ -614,11 +774,11 @@
             document.getElementById('statsCards').innerHTML = `
             <div class="stat-card"><h3>${products.length}</h3><p>المنتجات</p></div>
             <div class="stat-card"><h3>${orders.length}</h3><p>الطلبات</p></div>
-            <div class="stat-card"><h3>${totalSales.toFixed(2)}</h3><p>المبيعات (ريال)</p></div>
+            <div class="stat-card"><h3>${totalSales.toFixed(2)}</h3><p>المبيعات (دينار)</p></div>
             <div class="stat-card"><h3>${users.length}</h3><p>العملاء</p></div>`;
         }
 
-        // ------------------- المنتجات (مع إدارة المتغيرات ومعرض الصور) -------------------
+        // ------------------- المنتجات (كود أصلي محفوظ) -------------------
         async function loadProducts() {
             const data = await fetchAPI('/api/products');
             products = data.data;
@@ -627,474 +787,409 @@
         }
 
         function displayProducts() {
-            let html = `<table><thead><tr><th>الصورة</th><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الخصم</th><th>المتغيرات</th><th>الإجراءات</th></tr></thead><tbody>`;
+            let html = `<table><thead><th>الصورة</th><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الخصم</th><th>المتغيرات</th><th>الإجراءات</th></thead><tbody>`;
             products.forEach(p => {
                         let variantsHtml = p.variants && p.variants.length ? p.variants.map(v => `${v.name} (${v.stock})`).join('; ') : '-';
                         html += `<tr>
-                <td>${p.imageUrl?`<img src="${p.imageUrl}" width="50" style="border-radius:8px;">`:'-'}</td>
-                <td>${p.name}</td>
-                <td>${p.price}</td>
-                <td>${p.stock}</td>
-                <td>${p.discountPercent||0}%</td>
-                <td>${variantsHtml}</td>
-                <td><button onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i> تعديل</button> <button class="btn-danger" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i> حذف</button></td>
-            </tr>`;
-        });
-        html+='</tbody></table>';
-        document.getElementById('productsTable').innerHTML=html;
-    }
-
-    function addVariantField() {
-        const container = document.getElementById('variantsContainer');
-        const idx = variantCounter++;
-        const div = document.createElement('div');
-        div.className = 'variant-row';
-        div.innerHTML = `
-            <input type="text" placeholder="الاسم (مثال: L, أحمر)" name="varName${idx}" id="varName${idx}">
-            <input type="number" placeholder="السعر (اختياري)" name="varPrice${idx}" id="varPrice${idx}">
-            <input type="number" placeholder="المخزون" name="varStock${idx}" id="varStock${idx}">
-            <button type="button" onclick="this.parentElement.remove()" class="btn-danger">✖</button>
-        `;
-        container.appendChild(div);
-    }
-
-    function addGalleryField() {
-        const container = document.getElementById('galleryContainer');
-        const idx = galleryCounter++;
-        const div = document.createElement('div');
-        div.className = 'gallery-row';
-        div.innerHTML = `
-            <input type="text" placeholder="رابط الصورة (URL)" name="galleryUrl${idx}" id="galleryUrl${idx}">
-            <button type="button" onclick="this.parentElement.remove()" class="btn-danger">✖</button>
-        `;
-        container.appendChild(div);
-    }
-
-    function getVariantsFromForm() {
-        const variants = [];
-        document.querySelectorAll('#variantsContainer .variant-row').forEach(row => {
-            const name = row.querySelector('input[placeholder*="الاسم"]').value;
-            const price = row.querySelector('input[placeholder*="السعر"]').value;
-            const stock = row.querySelector('input[placeholder*="المخزون"]').value;
-            if(name && stock) variants.push({ id: Date.now()+'-'+Math.random(), name, price: price?parseFloat(price):null, stock: parseInt(stock) });
-        });
-        return variants;
-    }
-
-    function getGalleryFromForm() {
-        const gallery = [];
-        document.querySelectorAll('#galleryContainer .gallery-row input').forEach(inp => {
-            if(inp.value.trim()) gallery.push(inp.value.trim());
-        });
-        return gallery;
-    }
-
-    function openProductModal(id=null) {
-        document.getElementById('variantsContainer').innerHTML = '';
-        document.getElementById('galleryContainer').innerHTML = '';
-        variantCounter = 0;
-        galleryCounter = 0;
-        if(id){
-            const p=products.find(p=>p.id===id);
-            if(p){
-                document.getElementById('productModalTitle').innerText='تعديل منتج';
-                document.getElementById('pName').value=p.name;
-                document.getElementById('pPrice').value=p.price;
-                document.getElementById('pStock').value=p.stock;
-                document.getElementById('pDesc').value=p.description||'';
-                document.getElementById('pCategory').value=p.category||'';
-                document.getElementById('pDiscount').value=p.discountPercent||0;
-                document.getElementById('editId').value=p.id;
-                if(p.imageUrl) { document.getElementById('pImagePreview').src=p.imageUrl; document.getElementById('pImagePreview').style.display='block'; }
-                else document.getElementById('pImagePreview').style.display='none';
-                if(p.variants && p.variants.length){
-                    p.variants.forEach(v=>{
-                        addVariantField();
-                        const rows = document.querySelectorAll('#variantsContainer .variant-row');
-                        const lastRow = rows[rows.length-1];
-                        lastRow.querySelector('input[placeholder*="الاسم"]').value = v.name;
-                        lastRow.querySelector('input[placeholder*="السعر"]').value = v.price||'';
-                        lastRow.querySelector('input[placeholder*="المخزون"]').value = v.stock;
-                    });
+                    <td>${p.imageUrl?`<img src="${p.imageUrl}" width="50" style="border-radius:8px;">`:'-'}</td>
+                    <td>${p.name}</td>
+                    <td>${p.price} دينار</td>
+                    <td>${p.stock}</td>
+                    <td>${p.discountPercent||0}%</td>
+                    <td>${variantsHtml}</td>
+                    <td><button onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i> تعديل</button> <button class="btn-danger" onclick="deleteProduct('${p.id}')"><i class="fas fa-trash"></i> حذف</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('productsTable').innerHTML = html;
+        }
+        function addVariantField() {
+            const container = document.getElementById('variantsContainer');
+            const idx = variantCounter++;
+            const div = document.createElement('div'); div.className = 'variant-row';
+            div.innerHTML = `<input type="text" placeholder="الاسم (مثال: L, أحمر)" name="varName${idx}" id="varName${idx}"><input type="number" placeholder="السعر (اختياري)" name="varPrice${idx}" id="varPrice${idx}"><input type="number" placeholder="المخزون" name="varStock${idx}" id="varStock${idx}"><button type="button" onclick="this.parentElement.remove()" class="btn-danger">✖</button>`;
+            container.appendChild(div);
+        }
+        function addGalleryField() {
+            const container = document.getElementById('galleryContainer');
+            const idx = galleryCounter++;
+            const div = document.createElement('div'); div.className = 'gallery-row';
+            div.innerHTML = `<input type="text" placeholder="رابط الصورة (URL)" name="galleryUrl${idx}" id="galleryUrl${idx}"><button type="button" onclick="this.parentElement.remove()" class="btn-danger">✖</button>`;
+            container.appendChild(div);
+        }
+        function getVariantsFromForm() {
+            const variants = [];
+            document.querySelectorAll('#variantsContainer .variant-row').forEach(row => {
+                const name = row.querySelector('input[placeholder*="الاسم"]').value;
+                const price = row.querySelector('input[placeholder*="السعر"]').value;
+                const stock = row.querySelector('input[placeholder*="المخزون"]').value;
+                if(name && stock) variants.push({ id: Date.now()+'-'+Math.random(), name, price: price?parseFloat(price):null, stock: parseInt(stock) });
+            });
+            return variants;
+        }
+        function getGalleryFromForm() {
+            const gallery = [];
+            document.querySelectorAll('#galleryContainer .gallery-row input').forEach(inp => { if(inp.value.trim()) gallery.push(inp.value.trim()); });
+            return gallery;
+        }
+        function openProductModal(id=null) {
+            document.getElementById('variantsContainer').innerHTML = ''; document.getElementById('galleryContainer').innerHTML = '';
+            variantCounter = 0; galleryCounter = 0;
+            if(id){
+                const p=products.find(p=>p.id===id);
+                if(p){
+                    document.getElementById('productModalTitle').innerText='تعديل منتج';
+                    document.getElementById('pName').value=p.name;
+                    document.getElementById('pPrice').value=p.price;
+                    document.getElementById('pStock').value=p.stock;
+                    document.getElementById('pDesc').value=p.description||'';
+                    document.getElementById('pCategory').value=p.category||'';
+                    document.getElementById('pDiscount').value=p.discountPercent||0;
+                    document.getElementById('editId').value=p.id;
+                    if(p.imageUrl) { document.getElementById('pImagePreview').src=p.imageUrl; document.getElementById('pImagePreview').style.display='block'; }
+                    else document.getElementById('pImagePreview').style.display='none';
+                    if(p.variants && p.variants.length){
+                        p.variants.forEach(v=>{ addVariantField(); const rows = document.querySelectorAll('#variantsContainer .variant-row'); const lastRow = rows[rows.length-1]; lastRow.querySelector('input[placeholder*="الاسم"]').value = v.name; lastRow.querySelector('input[placeholder*="السعر"]').value = v.price||''; lastRow.querySelector('input[placeholder*="المخزون"]').value = v.stock; });
+                    }
+                    if(p.gallery && p.gallery.length){
+                        p.gallery.forEach(url=>{ addGalleryField(); const rows = document.querySelectorAll('#galleryContainer .gallery-row input'); rows[rows.length-1].value = url; });
+                    }
                 }
-                if(p.gallery && p.gallery.length){
-                    p.gallery.forEach(url=>{
-                        addGalleryField();
-                        const rows = document.querySelectorAll('#galleryContainer .gallery-row input');
-                        rows[rows.length-1].value = url;
-                    });
+            } else {
+                document.getElementById('productModalTitle').innerText='إضافة منتج';
+                document.getElementById('editId').value='';
+                document.getElementById('pImagePreview').style.display='none';
+            }
+            document.getElementById('productModal').style.display='flex';
+        }
+        function closeProductModal() { document.getElementById('productModal').style.display='none'; }
+        async function saveProduct(){
+            const id=document.getElementById('editId').value;
+            const fd=new FormData();
+            fd.append('name', document.getElementById('pName').value);
+            fd.append('price', document.getElementById('pPrice').value);
+            fd.append('stock', document.getElementById('pStock').value);
+            fd.append('description', document.getElementById('pDesc').value);
+            fd.append('category', document.getElementById('pCategory').value);
+            fd.append('discountPercent', document.getElementById('pDiscount').value);
+            const variants = getVariantsFromForm(); fd.append('variants', JSON.stringify(variants));
+            const gallery = getGalleryFromForm(); fd.append('gallery', JSON.stringify(gallery));
+            const file=document.getElementById('pImage').files[0]; if(file) fd.append('productImage', file);
+            const url=id?`/api/admin/products/${id}`:'/api/admin/products';
+            const method=id?'PUT':'POST';
+            const r=await fetch(url,{method,body:fd});
+            if(r.ok){ closeProductModal(); loadProducts(); } else alert('فشل الحفظ');
+        }
+        async function deleteProduct(id){ if(confirm('حذف المنتج نهائياً؟')){ await fetch(`/api/admin/products/${id}`,{method:'DELETE'}); loadProducts(); } }
+        function editProduct(id){ openProductModal(id); }
+
+        // ------------------- الطلبات (مطورة) -------------------
+        async function loadOrders() { const data=await fetchAPI('/api/admin/orders'); orders=data.data; displayOrders(); updateStats(); }
+        function displayOrders() {
+            let html = `<table class="table"><thead><th>رقم الطلب</th><th>العميل</th><th>الجوال</th><th>العنوان</th><th>المنتجات</th><th>الإجمالي</th><th>طريقة الشحن</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th></thead><tbody>`;
+            orders.forEach(o => {
+                let shippingText = '';
+                if (o.shippingMethod === 'standard') shippingText = 'عادي';
+                else if (o.shippingMethod === 'express') shippingText = 'سريع';
+                else if (o.shippingMethod === 'pickup') shippingText = 'استلام';
+                else shippingText = o.shippingMethod || 'عادي';
+                let productsList = '';
+                if (o.items && o.items.length) productsList = o.items.map(item => `${item.name} (x${item.quantity})`).join('، ');
+                else productsList = '-';
+                let statusClass = '';
+                if (o.status === 'قيد المراجعة') statusClass = 'status-pending';
+                else if (o.status === 'تم التجهيز') statusClass = 'status-processing';
+                else if (o.status === 'تم التوصيل') statusClass = 'status-delivered';
+                else statusClass = 'status-pending';
+                html += `<tr>
+                    <td>${o.orderId || '-'}</td>
+                    <td>${o.customerName || '-'}</td>
+                    <td>${o.customerPhone || '-'}</td>
+                    <td>${o.customerAddress || '-'}</td>
+                    <td class="products-cell">${productsList}</td>
+                    <td>${o.total || 0} دينار</td>
+                    <td>${shippingText}</td>
+                    <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+                    <td>${new Date(o.date).toLocaleDateString()}</td>
+                    <td><button class="btn-status" onclick="changeOrderStatus('${o.orderId}')"><i class="fas fa-edit"></i> تغيير الحالة</button> <button onclick="generateInvoice('${o.orderId}')"><i class="fas fa-file-pdf"></i> PDF</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('ordersTable').innerHTML = html;
+        }
+        async function changeOrderStatus(orderId) {
+            const newStatus = prompt('أدخل الحالة الجديدة (قيد المراجعة، تم التجهيز، تم التوصيل):', 'قيد المراجعة');
+            if (newStatus && (newStatus === 'قيد المراجعة' || newStatus === 'تم التجهيز' || newStatus === 'تم التوصيل')) {
+                await updateOrderStatus(orderId, newStatus);
+            } else if (newStatus) alert('حالة غير صالحة');
+        }
+        async function updateOrderStatus(id, status) { await fetch(`/api/admin/orders/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})}); loadOrders(); }
+        function generateInvoice(id){ window.open(`/api/orders/${id}/invoice`,'_blank'); }
+        function exportOrdersCSV(){ window.location.href='/api/admin/export-orders'; }
+
+        // ------------------- الكوبونات -------------------
+        async function loadCoupons(){ const data=await fetchAPI('/api/admin/coupons'); coupons=data.data; displayCoupons(); }
+        function displayCoupons(){
+            let html=`<table><thead><th>الكود</th><th>النوع</th><th>القيمة</th><th>الصلاحية</th><th>الاستخدام</th><th>إجراء</th></thead><tbody>`;
+            coupons.forEach(c=>{
+                html+=`<tr><td>${c.code}</td><td>${c.type==='percentage'?'نسبة':'ثابت'}</td><td>${c.value}</td><td>${new Date(c.expiryDate).toLocaleDateString()}</td><td>${c.usedCount}/${c.usageLimit}</td><td><button class="btn-danger" onclick="deleteCoupon('${c.id}')">حذف</button></td></tr>`;
+            });
+            html+='</tbody></table>';
+            document.getElementById('couponsTable').innerHTML=html;
+        }
+        function openCouponModal(){ document.getElementById('couponModal').style.display='flex'; }
+        function closeCouponModal(){ document.getElementById('couponModal').style.display='none'; }
+        async function addCoupon(){
+            const coupon={ code: document.getElementById('cCode').value, type: document.getElementById('cType').value, value: parseFloat(document.getElementById('cValue').value), expiryDate: document.getElementById('cExpiry').value, usageLimit: parseInt(document.getElementById('cLimit').value)||1, minCartAmount: parseFloat(document.getElementById('cMin').value)||0, newCustomerOnly: document.getElementById('cNewOnly').checked };
+            const r=await fetch('/api/admin/coupons',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(coupon)});
+            if(r.ok){ closeCouponModal(); loadCoupons(); } else alert('خطأ');
+        }
+        async function deleteCoupon(id){ if(confirm('حذف الكوبون؟')){ await fetch(`/api/admin/coupons/${id}`,{method:'DELETE'}); loadCoupons(); } }
+
+        // ------------------- العروض -------------------
+        async function loadOffers(){ try{ const data=await fetchAPI('/api/admin/offers'); offers=data.data; displayOffers(); } catch(e){ offers=[]; displayOffers(); } }
+        function displayOffers(){
+            let html=`<table><thead><th>الاسم</th><th>النوع</th><th>الهدف</th><th>الخصم</th><th>الفترة</th><th>فعال</th><th>إجراء</th></thead><tbody>`;
+            offers.forEach(o=>{
+                html+=`<tr><td>${o.name}</td><td>${o.type==='category'?'فئة':'منتج'}</td><td>${o.target}</td><td>${o.discountPercent}%</td><td>${new Date(o.startDate).toLocaleDateString()} - ${new Date(o.endDate).toLocaleDateString()}</td><td>${o.active?'نعم':'لا'}</td><td><button onclick="editOffer('${o.id}')"><i class="fas fa-edit"></i> تعديل</button> <button class="btn-danger" onclick="deleteOffer('${o.id}')">حذف</button></td></tr>`;
+            });
+            html+='</tbody></table>';
+            document.getElementById('offersTable').innerHTML=html;
+        }
+        function openOfferModal(id=null){
+            if(id){
+                const o=offers.find(o=>o.id===id);
+                if(o){
+                    document.getElementById('offerModalTitle').innerText='تعديل عرض';
+                    document.getElementById('offerName').value=o.name;
+                    document.getElementById('offerType').value=o.type;
+                    document.getElementById('offerTarget').value=o.target;
+                    document.getElementById('offerDiscount').value=o.discountPercent;
+                    document.getElementById('offerStart').value=o.startDate.split('T')[0];
+                    document.getElementById('offerEnd').value=o.endDate.split('T')[0];
+                    document.getElementById('offerActive').value=o.active?'true':'false';
+                    document.getElementById('editOfferId').value=o.id;
                 }
+            } else {
+                document.getElementById('offerModalTitle').innerText='إضافة عرض';
+                document.getElementById('offerName').value='';
+                document.getElementById('offerType').value='category';
+                document.getElementById('offerTarget').value='';
+                document.getElementById('offerDiscount').value='';
+                document.getElementById('offerStart').value='';
+                document.getElementById('offerEnd').value='';
+                document.getElementById('offerActive').value='true';
+                document.getElementById('editOfferId').value='';
             }
-        } else {
-            document.getElementById('productModalTitle').innerText='إضافة منتج';
-            document.getElementById('editId').value='';
-            document.getElementById('pImagePreview').style.display='none';
+            document.getElementById('offerModal').style.display='flex';
         }
-        document.getElementById('productModal').style.display='flex';
-    }
-    function closeProductModal() { document.getElementById('productModal').style.display='none'; }
-    async function saveProduct(){
-        const id=document.getElementById('editId').value;
-        const fd=new FormData();
-        fd.append('name', document.getElementById('pName').value);
-        fd.append('price', document.getElementById('pPrice').value);
-        fd.append('stock', document.getElementById('pStock').value);
-        fd.append('description', document.getElementById('pDesc').value);
-        fd.append('category', document.getElementById('pCategory').value);
-        fd.append('discountPercent', document.getElementById('pDiscount').value);
-        const variants = getVariantsFromForm();
-        fd.append('variants', JSON.stringify(variants));
-        const gallery = getGalleryFromForm();
-        fd.append('gallery', JSON.stringify(gallery));
-        const file=document.getElementById('pImage').files[0];
-        if(file) fd.append('productImage', file);
-        const url=id?`/api/admin/products/${id}`:'/api/admin/products';
-        const method=id?'PUT':'POST';
-        const r=await fetch(url,{method,body:fd});
-        if(r.ok){ closeProductModal(); loadProducts(); } else alert('فشل الحفظ');
-    }
-    async function deleteProduct(id){ if(confirm('حذف المنتج نهائياً؟')){ await fetch(`/api/admin/products/${id}`,{method:'DELETE'}); loadProducts(); } }
-    function editProduct(id){ openProductModal(id); }
+        function closeOfferModal(){ document.getElementById('offerModal').style.display='none'; }
+        async function saveOffer(){
+            const id=document.getElementById('editOfferId').value;
+            const offer={ name: document.getElementById('offerName').value, type: document.getElementById('offerType').value, target: document.getElementById('offerTarget').value, discountPercent: parseFloat(document.getElementById('offerDiscount').value), startDate: document.getElementById('offerStart').value, endDate: document.getElementById('offerEnd').value, active: document.getElementById('offerActive').value==='true' };
+            const url=id?`/api/admin/offers/${id}`:'/api/admin/offers';
+            const method=id?'PUT':'POST';
+            const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(offer)});
+            if(r.ok){ closeOfferModal(); loadOffers(); } else alert('فشل حفظ العرض');
+        }
+        async function deleteOffer(id){ if(confirm('حذف العرض؟')){ await fetch(`/api/admin/offers/${id}`,{method:'DELETE'}); loadOffers(); } }
+        function editOffer(id){ openOfferModal(id); }
 
-    // ------------------- الطلبات -------------------
-    async function loadOrders() { const data=await fetchAPI('/api/admin/orders'); orders=data.data; displayOrders(); updateStats(); }
-    
-    // تم تعديل هذه الدالة لإصلاح تنسيق الجدول
-    function displayOrders() {
-        let html = `<table><thead>\
-            <th>رقم الطلب</th><th>العميل</th><th>الجوال</th><th>العنوان</th><th>الإجمالي</th><th>طريقة الشحن</th><th>الحالة</th><th>التاريخ</th><th>الإجراءات</th>\
-        </thead><tbody>`;
-        orders.forEach(o => {
-            let shippingText = '';
-            if (o.shippingMethod === 'standard') shippingText = 'عادي';
-            else if (o.shippingMethod === 'express') shippingText = 'سريع';
-            else if (o.shippingMethod === 'pickup') shippingText = 'استلام';
-            else shippingText = o.shippingMethod || 'عادي';
-            
-            html += `\
-                <tr>
-                <td>${o.orderId || '-'}</td>
-                <td>${o.customerName || '-'}</td>
-                <td>${o.customerPhone || '-'}</td>
-                <td>${o.customerAddress || '-'}</td>
-                <td>${o.total || 0} ريال</td>\
-                <td>${shippingText}</td>\
-                <td><select onchange="updateOrderStatus('${o.orderId}', this.value)">\
-                    <option value="قيد المراجعة" ${o.status === 'قيد المراجعة' ? 'selected' : ''}>قيد المراجعة</option>\
-                    <option value="تم التجهيز" ${o.status === 'تم التجهيز' ? 'selected' : ''}>تم التجهيز</option>\
-                    <option value="تم التوصيل" ${o.status === 'تم التوصيل' ? 'selected' : ''}>تم التوصيل</option>\
-                </select></td>\
-                <td>${new Date(o.date).toLocaleDateString()}</td>\
-                <td><button onclick="generateInvoice('${o.orderId}')"><i class="fas fa-file-pdf"></i> PDF</button></td>\
-            </tr>`;
-        });
-        html += `</tbody></tr>`;
-        document.getElementById('ordersTable').innerHTML = html;
-    }
-    
-    async function updateOrderStatus(id,status){ await fetch(`/api/admin/orders/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})}); loadOrders(); }
-    function generateInvoice(id){ window.open(`/api/orders/${id}/invoice`,'_blank'); }
-    function exportOrdersCSV(){ window.location.href='/api/admin/export-orders'; }
+        // ------------------- التنبيهات -------------------
+        async function loadAlerts(){ const data=await fetchAPI('/api/admin/alerts'); alerts=data.data; displayAlerts(); }
+        function displayAlerts(){
+            if(!alerts.length){ document.getElementById('alertsList').innerHTML='<div class="alert-item" style="background:#e8f5e9;">✅ لا توجد تنبيهات</div>'; return; }
+            let html='';
+            alerts.forEach(a=>{ html+=`<div class="alert-item"><i class="fas fa-exclamation-circle"></i> <strong>${a.productName}</strong> - المتبقي: ${a.remainingStock} <button class="btn-danger" onclick="deleteAlert('${a.productId}')">حذف</button></div>`; });
+            document.getElementById('alertsList').innerHTML=html;
+        }
+        async function deleteAlert(pid){ await fetch(`/api/admin/alerts/${pid}`,{method:'DELETE'}); loadAlerts(); }
 
-    // ------------------- الكوبونات -------------------
-    async function loadCoupons(){ const data=await fetchAPI('/api/admin/coupons'); coupons=data.data; displayCoupons(); }
-    function displayCoupons(){
-        let html=`<tr><thead><tr><th>الكود</th><th>النوع</th><th>القيمة</th><th>الصلاحية</th><th>الاستخدام</th><th>إجراء</th></tr></thead><tbody>`;
-        coupons.forEach(c=>{
-            html+=`<td>
-                <td>${c.code}</td>\
-                <td>${c.type==='percentage'?'نسبة':'ثابت'}</td>\
-                <td>${c.value}</td>\
-                <td>${new Date(c.expiryDate).toLocaleDateString()}</td>\
-                <td>${c.usedCount}/${c.usageLimit}</td>\
-                <td><button class="btn-danger" onclick="deleteCoupon('${c.id}')">حذف</button></td>\
-            </tr>`;
-        });
-        html+='</tbody></table>';
-        document.getElementById('couponsTable').innerHTML=html;
-    }
-    function openCouponModal(){ document.getElementById('couponModal').style.display='flex'; }
-    function closeCouponModal(){ document.getElementById('couponModal').style.display='none'; }
-    async function addCoupon(){
-        const coupon={
-            code: document.getElementById('cCode').value,
-            type: document.getElementById('cType').value,
-            value: parseFloat(document.getElementById('cValue').value),
-            expiryDate: document.getElementById('cExpiry').value,
-            usageLimit: parseInt(document.getElementById('cLimit').value)||1,
-            minCartAmount: parseFloat(document.getElementById('cMin').value)||0,
-            newCustomerOnly: document.getElementById('cNewOnly').checked
-        };
-        const r=await fetch('/api/admin/coupons',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(coupon)});
-        if(r.ok){ closeCouponModal(); loadCoupons(); } else alert('خطأ');
-    }
-    async function deleteCoupon(id){ if(confirm('حذف الكوبون؟')){ await fetch(`/api/admin/coupons/${id}`,{method:'DELETE'}); loadCoupons(); } }
+        // ------------------- التقييمات -------------------
+        async function loadReviews(){
+            try{
+                const res = await fetch('/api/admin/reviews');
+                if(res.ok){ const data=await res.json(); reviews=data.data; displayReviews(); }
+                else { document.getElementById('reviewsList').innerHTML='<div class="alert-item">⚠️ لا يمكن تحميل التقييمات</div>'; }
+            } catch(e){ document.getElementById('reviewsList').innerHTML='<div class="alert-item">⚠️ فشل تحميل التقييمات</div>'; }
+        }
+        function displayReviews(){
+            let html=`<table><thead><th>المنتج</th><th>العميل</th><th>التقييم</th><th>التعليق</th><th>رد الإدارة</th><th>الإجراءات</th></thead><tbody>`;
+            reviews.forEach(r=>{
+                html+=`<tr><td>${r.productName||r.productId}</td><td>${r.customerName}</td><td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td><td>${r.comment}</td><td>${r.adminReply||'-'}</td><td><button onclick="openReplyModal('${r._id}','${r.comment.replace(/'/g,"\\'")}')"><i class="fas fa-reply"></i> رد</button></td></tr>`;
+            });
+            html+='</tbody></table>';
+            document.getElementById('reviewsList').innerHTML=html;
+        }
+        function openReplyModal(id,comment){ document.getElementById('replyReviewId').value=id; document.getElementById('reviewComment').innerText=comment; document.getElementById('replyText').value=''; document.getElementById('replyModal').style.display='flex'; }
+        function closeReplyModal(){ document.getElementById('replyModal').style.display='none'; }
+        async function submitReply(){ const id=document.getElementById('replyReviewId').value; const reply=document.getElementById('replyText').value; if(!reply){ alert('الرد مطلوب'); return; } const res=await fetch(`/api/admin/reviews/${id}/reply`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reply})}); if(res.ok){ closeReplyModal(); loadReviews(); alert('تم إرسال الرد'); } else alert('فشل الإرسال'); }
 
-    // ------------------- العروض (Offers) -------------------
-    async function loadOffers(){ try{ const data=await fetchAPI('/api/admin/offers'); offers=data.data; displayOffers(); } catch(e){ offers=[]; displayOffers(); } }
-    function displayOffers(){
-        let html=`<table><thead><tr><th>الاسم</th><th>النوع</th><th>الهدف</th><th>الخصم</th><th>الفترة</th><th>فعال</th><th>إجراء</th></tr></thead><tbody>`;
-        offers.forEach(o=>{
-            html+=`<tr>
-                <td>${o.name}</td><td>${o.type==='category'?'فئة':'منتج'}</td><td>${o.target}</td><td>${o.discountPercent}%</td><td>${new Date(o.startDate).toLocaleDateString()} - ${new Date(o.endDate).toLocaleDateString()}</td><td>${o.active?'نعم':'لا'}</td>
-                <td><button onclick="editOffer('${o.id}')"><i class="fas fa-edit"></i> تعديل</button> <button class="btn-danger" onclick="deleteOffer('${o.id}')">حذف</button></td>
-            </tr>`;
-        });
-        html+='</tbody></table>';
-        document.getElementById('offersTable').innerHTML=html;
-    }
-    function openOfferModal(id=null){
-        if(id){
-            const o=offers.find(o=>o.id===id);
-            if(o){
-                document.getElementById('offerModalTitle').innerText='تعديل عرض';
-                document.getElementById('offerName').value=o.name;
-                document.getElementById('offerType').value=o.type;
-                document.getElementById('offerTarget').value=o.target;
-                document.getElementById('offerDiscount').value=o.discountPercent;
-                document.getElementById('offerStart').value=o.startDate.split('T')[0];
-                document.getElementById('offerEnd').value=o.endDate.split('T')[0];
-                document.getElementById('offerActive').value=o.active?'true':'false';
-                document.getElementById('editOfferId').value=o.id;
+        // ------------------- المستخدمين -------------------
+        async function loadUsers(){ try { const data=await fetchAPI('/api/admin/users'); users=data.data; displayUsers(); updateStats(); } catch(e){ users=[]; displayUsers(); } }
+        function displayUsers(){
+            if(!users.length){ document.getElementById('usersTable').innerHTML='<div>لا يوجد مستخدمون مسجلون</div>'; return; }
+            let html=`<table><thead><th>اسم المستخدم</th><th>البريد</th><th>نقاط الولاء</th><th>عدد الطلبات</th><th>إجمالي المشتريات</th><th>تاريخ التسجيل</th></thead><tbody>`;
+            users.forEach(u=>{
+                html+=`<tr><td>${u.username}</td><td>${u.email}</td><td>${u.loyaltyPoints||0}</td><td>${u.totalOrders||0}</td><td>${(u.totalSpent||0).toFixed(2)} دينار</td><td>${new Date(u.createdAt).toLocaleDateString()}</td></tr>`;
+            });
+            html+='</tbody></table>';
+            document.getElementById('usersTable').innerHTML=html;
+        }
+
+        // ------------------- إدارة الأدمن (جديد) -------------------
+        async function loadAdmins() {
+            try {
+                const res = await fetch('/api/admin/admins-stats', { credentials: 'include' });
+                const admins = await res.json();
+                let html = `<table><thead><th>الاسم</th><th>البريد</th><th>عدد الطلبات</th><th>إجمالي المبيعات</th><th>آخر دخول</th><th>إجراءات</th></thead><tbody>`;
+                admins.forEach(admin => {
+                    html += `<tr><td>${admin.name}</td><td>${admin.email}</td><td>${admin.ordersCount}</td><td>${admin.totalSales} دينار</td><td>${admin.lastLogin ? new Date(admin.lastLogin).toLocaleString() : 'لم يدخل بعد'}</td><td><button onclick="editAdmin('${admin.id}')">تعديل</button></td></tr>`;
+                });
+                html += '</tbody></table>';
+                document.getElementById('adminsTable').innerHTML = html;
+            } catch(e) {
+                document.getElementById('adminsTable').innerHTML = '<div class="alert-item">⚠️ لا يمكن تحميل بيانات الأدمن (تأكد من أنك مسجل كـ super admin)</div>';
             }
-        } else {
-            document.getElementById('offerModalTitle').innerText='إضافة عرض';
-            document.getElementById('offerName').value='';
-            document.getElementById('offerType').value='category';
-            document.getElementById('offerTarget').value='';
-            document.getElementById('offerDiscount').value='';
-            document.getElementById('offerStart').value='';
-            document.getElementById('offerEnd').value='';
-            document.getElementById('offerActive').value='true';
-            document.getElementById('editOfferId').value='';
         }
-        document.getElementById('offerModal').style.display='flex';
-    }
-    function closeOfferModal(){ document.getElementById('offerModal').style.display='none'; }
-    async function saveOffer(){
-        const id=document.getElementById('editOfferId').value;
-        const offer={
-            name: document.getElementById('offerName').value,
-            type: document.getElementById('offerType').value,
-            target: document.getElementById('offerTarget').value,
-            discountPercent: parseFloat(document.getElementById('offerDiscount').value),
-            startDate: document.getElementById('offerStart').value,
-            endDate: document.getElementById('offerEnd').value,
-            active: document.getElementById('offerActive').value==='true'
-        };
-        const url=id?`/api/admin/offers/${id}`:'/api/admin/offers';
-        const method=id?'PUT':'POST';
-        const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(offer)});
-        if(r.ok){ closeOfferModal(); loadOffers(); } else alert('فشل حفظ العرض');
-    }
-    async function deleteOffer(id){ if(confirm('حذف العرض؟')){ await fetch(`/api/admin/offers/${id}`,{method:'DELETE'}); loadOffers(); } }
-    function editOffer(id){ openOfferModal(id); }
-
-    // ------------------- التنبيهات -------------------
-    async function loadAlerts(){ const data=await fetchAPI('/api/admin/alerts'); alerts=data.data; displayAlerts(); }
-    function displayAlerts(){
-        if(!alerts.length){ document.getElementById('alertsList').innerHTML='<div class="alert-item" style="background:#e8f5e9;">✅ لا توجد تنبيهات</div>'; return; }
-        let html='';
-        alerts.forEach(a=>{
-            html+=`<div class="alert-item"><i class="fas fa-exclamation-circle"></i> <strong>${a.productName}</strong> - المتبقي: ${a.remainingStock} <button class="btn-danger" onclick="deleteAlert('${a.productId}')">حذف</button></div>`;
-        });
-        document.getElementById('alertsList').innerHTML=html;
-    }
-    async function deleteAlert(pid){ await fetch(`/api/admin/alerts/${pid}`,{method:'DELETE'}); loadAlerts(); }
-
-    // ------------------- التقييمات -------------------
-    async function loadReviews(){
-        try{
-            const res = await fetch('/api/admin/reviews');
-            if(res.ok){ const data=await res.json(); reviews=data.data; displayReviews(); }
-            else { document.getElementById('reviewsList').innerHTML='<div class="alert-item">⚠️ لا يمكن تحميل التقييمات</div>'; }
-        } catch(e){ document.getElementById('reviewsList').innerHTML='<div class="alert-item">⚠️ فشل تحميل التقييمات</div>'; }
-    }
-    function displayReviews(){
-        let html=`<tr><thead><tr><th>المنتج</th><th>العميل</th><th>التقييم</th><th>التعليق</th><th>رد الإدارة</th><th>الإجراءات</th></tr></thead><tbody>`;
-        reviews.forEach(r=>{
-            html+=`<tr>
-                <td>${r.productName||r.productId}</td><td>${r.customerName}</td><td>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</td><td>${r.comment}</td><td>${r.adminReply||'-'}</td>
-                <td><button onclick="openReplyModal('${r._id}','${r.comment.replace(/'/g,"\\'")}')"><i class="fas fa-reply"></i> رد</button></td>
-            </tr>`;
-        });
-        html+='</tbody></table>';
-        document.getElementById('reviewsList').innerHTML=html;
-    }
-    function openReplyModal(id,comment){
-        document.getElementById('replyReviewId').value=id;
-        document.getElementById('reviewComment').innerText=comment;
-        document.getElementById('replyText').value='';
-        document.getElementById('replyModal').style.display='flex';
-    }
-    function closeReplyModal(){ document.getElementById('replyModal').style.display='none'; }
-    async function submitReply(){
-        const id=document.getElementById('replyReviewId').value;
-        const reply=document.getElementById('replyText').value;
-        if(!reply){ alert('الرد مطلوب'); return; }
-        const res=await fetch(`/api/admin/reviews/${id}/reply`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reply})});
-        if(res.ok){ closeReplyModal(); loadReviews(); alert('تم إرسال الرد'); }
-        else alert('فشل الإرسال');
-    }
-
-    // ------------------- المستخدمين -------------------
-    async function loadUsers(){ try { const data=await fetchAPI('/api/admin/users'); users=data.data; displayUsers(); updateStats(); } catch(e){ users=[]; displayUsers(); } }
-    function displayUsers(){
-        if(!users.length){ document.getElementById('usersTable').innerHTML='<div>لا يوجد مستخدمون مسجلون</div>'; return; }
-        let html=`<table><thead><tr><th>اسم المستخدم</th><th>البريد</th><th>نقاط الولاء</th><th>عدد الطلبات</th><th>إجمالي المشتريات</th><th>تاريخ التسجيل</th></tr></thead><tbody>`;
-        users.forEach(u=>{
-            html+=`<tr>
-                <td>${u.username}</td><td>${u.email}</td><td>${u.loyaltyPoints||0}</td><td>${u.totalOrders||0}</td><td>${(u.totalSpent||0).toFixed(2)} ريال</td><td>${new Date(u.createdAt).toLocaleDateString()}</td>
-            </tr>`;
-        });
-        html+='</tbody></table>';
-        document.getElementById('usersTable').innerHTML=html;
-    }
-
-    // ------------------- أرشيف الطلبات -------------------
-    async function archiveOldOrders(){
-        const res=await fetch('/api/admin/archive-orders',{method:'POST'});
-        const data=await res.json();
-        if(data.success){
-            document.getElementById('archiveResult').innerHTML=`<div class="alert-item" style="background:#e8f5e9;">✅ تمت أرشفة ${data.archivedCount} طلب قديم</div>`;
-            loadOrders();
-        } else alert('فشل الأرشفة');
-    }
-
-    // ------------------- الإحصائيات والرسوم البيانية -------------------
-    async function loadStats(){
-        const data=await fetchAPI('/api/admin/stats');
-        if(data.data){
-            if(data.data.topProducts){ topProductsData=data.data.topProducts; drawTopProductsChart(); displayTopProductsList(); }
-            updateStats();
-            loadSalesTimeChart();
+        function openCreateAdminModal() { document.getElementById('adminName').value = ''; document.getElementById('adminEmail').value = ''; document.getElementById('adminPassword').value = ''; document.getElementById('createAdminModal').style.display = 'flex'; }
+        function closeCreateAdminModal() { document.getElementById('createAdminModal').style.display = 'none'; }
+        async function createAdmin() {
+            const name = document.getElementById('adminName').value;
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            if (!name || !email || !password) { alert('جميع الحقول مطلوبة'); return; }
+            const res = await fetch('/api/admin/create-admin', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ name, email, password })
+            });
+            if (res.ok) { alert('تم إنشاء الأدمن بنجاح'); closeCreateAdminModal(); loadAdmins(); }
+            else { const err = await res.text(); alert('فشل الإنشاء: ' + err); }
         }
-    }
-    function drawTopProductsChart(){
-        const ctx=document.getElementById('topProductsChart').getContext('2d');
-        if(window.topChart) window.topChart.destroy();
-        if(topProductsData.length){
-            window.topChart=new Chart(ctx,{type:'bar',data:{labels:topProductsData.map(p=>p._id),datasets:[{label:'الكمية المباعة',data:topProductsData.map(p=>p.totalSold),backgroundColor:'#2a5298'}]},options:{responsive:true}});
+        function editAdmin(id) {
+            const newName = prompt('الاسم الجديد:');
+            if (newName) {
+                const newPassword = prompt('كلمة المرور الجديدة (اترك فارغاً إذا لا تريد تغييرها):');
+                fetch(`/api/admin/update-admin/${id}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                    body: JSON.stringify({ name: newName, newPassword: newPassword || undefined })
+                }).then(res => { if (res.ok) { alert('تم التحديث'); loadAdmins(); } else alert('فشل التحديث'); });
+            }
         }
-    }
-    function displayTopProductsList(){
-        let html=`<tr><thead><tr><th>المنتج</th><th>الكمية المباعة</th></tr></thead><tbody>`;
-        topProductsData.forEach(p=>{html+=`<tr><td>${p._id}</td><td>${p.totalSold}</td>`;});
-        html+='</tbody></table>';
-        document.getElementById('topProductsList').innerHTML=html;
-    }
-    async function loadSalesTimeChart(){
-        // جلب الطلبات لإنشاء رسم بياني للمبيعات حسب الشهر
-        const res=await fetch('/api/admin/orders');
-        const data=await res.json();
-        const ordersData=data.data||[];
-        const monthly={};
-        ordersData.forEach(o=>{
-            const d=new Date(o.date);
-            const key=`${d.getFullYear()}-${d.getMonth()+1}`;
-            monthly[key]=(monthly[key]||0)+o.total;
-        });
-        const labels=Object.keys(monthly).sort();
-        const values=labels.map(l=>monthly[l]);
-        const ctx=document.getElementById('salesTimeChart').getContext('2d');
-        if(window.salesChart) window.salesChart.destroy();
-        window.salesChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'المبيعات (ريال)',data:values,borderColor:'#27ae60',fill:false}]},options:{responsive:true}});
-    }
-    async function downloadSalesReport(){ window.open('/api/admin/reports/sales','_blank'); }
-
-    // ------------------- الإعدادات العامة وتكاليف الشحن و PayPal -------------------
-    async function loadSettings(){
-        const data=await fetchAPI('/api/admin/settings');
-        if(data.data){
-            document.getElementById('maintenanceMode').value=data.data.maintenance;
-            document.getElementById('maintenanceMsg').value=data.data.maintenanceMessage||'';
+        function changeMyPassword() { document.getElementById('oldPassword').value = ''; document.getElementById('newPassword').value = ''; document.getElementById('changePasswordModal').style.display = 'flex'; }
+        function closeChangePasswordModal() { document.getElementById('changePasswordModal').style.display = 'none'; }
+        async function submitChangePassword() {
+            const currentPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            if (!currentPassword || !newPassword) { alert('الرجاء إدخال كلمة المرور الحالية والجديدة'); return; }
+            const res = await fetch('/api/admin/change-password', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+            if (res.ok) { alert('تم تغيير كلمة المرور بنجاح'); closeChangePasswordModal(); }
+            else { const err = await res.text(); alert('فشل تغيير كلمة المرور: ' + err); }
         }
-        const shipStd = localStorage.getItem('shippingStandard') || '10';
-        const shipExp = localStorage.getItem('shippingExpress') || '25';
-        document.getElementById('shippingStandard').value = shipStd;
-        document.getElementById('shippingExpress').value = shipExp;
-        const paypalEnabled = localStorage.getItem('paypalEnabled') || 'true';
-        document.getElementById('paypalEnabled').value = paypalEnabled;
-    }
-    async function updateSettings(){
-        const maintenance=document.getElementById('maintenanceMode').value==='true';
-        const msg=document.getElementById('maintenanceMsg').value;
-        await fetch('/api/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({maintenance,maintenanceMessage:msg})});
-        alert('تم حفظ إعدادات الصيانة');
-    }
-    function updateShippingSettings(){
-        const std=document.getElementById('shippingStandard').value;
-        const exp=document.getElementById('shippingExpress').value;
-        const paypal=document.getElementById('paypalEnabled').value;
-        localStorage.setItem('shippingStandard',std);
-        localStorage.setItem('shippingExpress',exp);
-        localStorage.setItem('paypalEnabled',paypal);
-        alert('تم حفظ تكاليف الشحن وإعدادات PayPal محلياً (ساري فوراً)');
-        // إرسال إلى الخادم أيضاً (اختياري) يمكن إضافة API لحفظ هذه الإعدادات
-    }
 
-    // إرسال نشرة بريدية
-    async function sendNewsletter(){
-        const subject=document.getElementById('newsletterSubject').value;
-        const body=document.getElementById('newsletterBody').value;
-        if(!subject || !body){ alert('الرجاء ملء الموضوع والمحتوى'); return; }
-        const res=await fetch('/api/admin/send-newsletter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject,html:body})});
-        if(res.ok) alert('تم إرسال النشرة البريدية بنجاح');
-        else alert('فشل الإرسال');
-    }
+        // ------------------- تقارير جغرافية (جديد) -------------------
+        async function loadGeoReport() {
+            const groupBy = document.getElementById('geoGroupBy').value;
+            const fromDate = document.getElementById('geoFromDate').value;
+            const toDate = document.getElementById('geoToDate').value;
+            let url = `/api/admin/reports/sales-by-location?groupBy=${groupBy}`;
+            if (fromDate) url += `&fromDate=${fromDate}`;
+            if (toDate) url += `&toDate=${toDate}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            let html = `<table><thead><th>${groupBy === 'city' ? 'المدينة' : 'البلد'}</th><th>عدد الطلبات</th><th>إجمالي المبيعات</th></thead><tbody>`;
+            data.forEach(item => { html += `<tr><td>${item._id || 'غير محدد'}</td><td>${item.ordersCount}</td><td>${item.totalSales} دينار</td></tr>`; });
+            html += '</tbody></table>';
+            document.getElementById('geoReportTable').innerHTML = html;
+            const ctx = document.getElementById('geoChart').getContext('2d');
+            if (window.geoChart) window.geoChart.destroy();
+            window.geoChart = new Chart(ctx, { type: 'bar', data: { labels: data.map(d => d._id || 'غير محدد'), datasets: [{ label: 'المبيعات (دينار)', data: data.map(d => d.totalSales), backgroundColor: '#2a5298' }] }, options: { responsive: true } });
+        }
 
-    // ------------------- تنقل الأقسام -------------------
-    function showSection(sectionId){
-        document.querySelectorAll('.section').forEach(sec=>sec.style.display='none');
-        document.getElementById(sectionId+'Section').style.display='block';
-        document.querySelectorAll('.sidebar nav li').forEach(li=>li.classList.remove('active'));
-        document.querySelector(`.sidebar nav li[data-section="${sectionId}"]`).classList.add('active');
-        if(sectionId==='stats'){ loadStats(); loadSalesTimeChart(); }
-        if(sectionId==='users') loadUsers();
-        if(sectionId==='reviews') loadReviews();
-        if(sectionId==='offers') loadOffers();
-    }
+        // ------------------- أرشيف الطلبات -------------------
+        async function archiveOldOrders(){ const res=await fetch('/api/admin/archive-orders',{method:'POST'}); const data=await res.json(); if(data.success){ document.getElementById('archiveResult').innerHTML=`<div class="alert-item" style="background:#e8f5e9;">✅ تمت أرشفة ${data.archivedCount} طلب قديم</div>`; loadOrders(); } else alert('فشل الأرشفة'); }
 
-    // ------------------- تسجيل الخروج -------------------
-    async function logout(){ await fetch('/api/admin/logout',{method:'POST'}); window.location.href='/login.html'; }
+        // ------------------- الإحصائيات والرسوم البيانية -------------------
+        async function loadStats(){ const data=await fetchAPI('/api/admin/stats'); if(data.data){ if(data.data.topProducts){ topProductsData=data.data.topProducts; drawTopProductsChart(); displayTopProductsList(); } updateStats(); loadSalesTimeChart(); } }
+        function drawTopProductsChart(){ const ctx=document.getElementById('topProductsChart').getContext('2d'); if(window.topChart) window.topChart.destroy(); if(topProductsData.length){ window.topChart=new Chart(ctx,{type:'bar',data:{labels:topProductsData.map(p=>p._id),datasets:[{label:'الكمية المباعة',data:topProductsData.map(p=>p.totalSold),backgroundColor:'#2a5298'}]},options:{responsive:true}}); } }
+        function displayTopProductsList(){ let html=`<table><thead><th>المنتج</th><th>الكمية المباعة</th></thead><tbody>`; topProductsData.forEach(p=>{html+=`<tr><td>${p._id}</td><td>${p.totalSold}</td></tr>`;}); html+='</tbody></table>'; document.getElementById('topProductsList').innerHTML=html; }
+        async function loadSalesTimeChart(){ const res=await fetch('/api/admin/orders'); const data=await res.json(); const ordersData=data.data||[]; const monthly={}; ordersData.forEach(o=>{ const d=new Date(o.date); const key=`${d.getFullYear()}-${d.getMonth()+1}`; monthly[key]=(monthly[key]||0)+o.total; }); const labels=Object.keys(monthly).sort(); const values=labels.map(l=>monthly[l]); const ctx=document.getElementById('salesTimeChart').getContext('2d'); if(window.salesChart) window.salesChart.destroy(); window.salesChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'المبيعات (دينار)',data:values,borderColor:'#27ae60',fill:false}]},options:{responsive:true}}); }
+        async function downloadSalesReport(){ window.open('/api/admin/reports/sales','_blank'); }
 
-    // ------------------- تهيئة القائمة الجانبية والأحداث -------------------
-    const menuToggle=document.getElementById('menuToggle');
-    const sidebar=document.getElementById('sidebar');
-    if(menuToggle) menuToggle.addEventListener('click',()=>sidebar.classList.toggle('open'));
-    document.querySelectorAll('.sidebar nav li').forEach(li=>{
-        li.addEventListener('click',()=>{
-            const sec=li.getAttribute('data-section');
-            showSection(sec);
-            if(window.innerWidth<=992) sidebar.classList.remove('open');
+        // ------------------- الإعدادات العامة -------------------
+        async function loadSettings(){ const data=await fetchAPI('/api/admin/settings'); if(data.data){ document.getElementById('maintenanceMode').value=data.data.maintenance; document.getElementById('maintenanceMsg').value=data.data.maintenanceMessage||''; } const shipStd = localStorage.getItem('shippingStandard') || '10'; const shipExp = localStorage.getItem('shippingExpress') || '25'; document.getElementById('shippingStandard').value = shipStd; document.getElementById('shippingExpress').value = shipExp; const paypalEnabled = localStorage.getItem('paypalEnabled') || 'true'; document.getElementById('paypalEnabled').value = paypalEnabled; }
+        async function updateSettings(){ const maintenance=document.getElementById('maintenanceMode').value==='true'; const msg=document.getElementById('maintenanceMsg').value; await fetch('/api/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({maintenance,maintenanceMessage:msg})}); alert('تم حفظ إعدادات الصيانة'); }
+        function updateShippingSettings(){ const std=document.getElementById('shippingStandard').value; const exp=document.getElementById('shippingExpress').value; const paypal=document.getElementById('paypalEnabled').value; localStorage.setItem('shippingStandard',std); localStorage.setItem('shippingExpress',exp); localStorage.setItem('paypalEnabled',paypal); alert('تم حفظ تكاليف الشحن وإعدادات PayPal محلياً (ساري فوراً)'); }
+
+        // إرسال نشرة بريدية
+        async function sendNewsletter(){ const subject=document.getElementById('newsletterSubject').value; const body=document.getElementById('newsletterBody').value; if(!subject || !body){ alert('الرجاء ملء الموضوع والمحتوى'); return; } const res=await fetch('/api/admin/send-newsletter',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject,html:body})}); if(res.ok) alert('تم إرسال النشرة البريدية بنجاح'); else alert('فشل الإرسال'); }
+
+        // ------------------- تنقل الأقسام -------------------
+        function showSection(sectionId){
+            document.querySelectorAll('.section').forEach(sec=>sec.style.display='none');
+            document.getElementById(sectionId+'Section').style.display='block';
+            document.querySelectorAll('.sidebar nav li').forEach(li=>li.classList.remove('active'));
+            document.querySelector(`.sidebar nav li[data-section="${sectionId}"]`).classList.add('active');
+            if(sectionId==='stats'){ loadStats(); loadSalesTimeChart(); }
+            if(sectionId==='users') loadUsers();
+            if(sectionId==='reviews') loadReviews();
+            if(sectionId==='offers') loadOffers();
+            if(sectionId==='admins') loadAdmins();
+            if(sectionId==='geo') loadGeoReport();
+        }
+
+        // ------------------- تسجيل الخروج -------------------
+        async function logout(){ await fetch('/api/admin/logout',{method:'POST'}); window.location.href='/login.html'; }
+
+        // ------------------- تهيئة القائمة الجانبية والأحداث -------------------
+        const menuToggle=document.getElementById('menuToggle');
+        const sidebar=document.getElementById('sidebar');
+        if(menuToggle) menuToggle.addEventListener('click',()=>sidebar.classList.toggle('open'));
+        document.querySelectorAll('.sidebar nav li').forEach(li=>{
+            li.addEventListener('click',()=>{
+                const sec=li.getAttribute('data-section');
+                showSection(sec);
+                if(window.innerWidth<=992) sidebar.classList.remove('open');
+            });
         });
-    });
 
-    // ------------------- تحميل البيانات الأولية -------------------
-    (async function init(){
-        await loadProducts();
-        await loadOrders();
-        await loadCoupons();
-        await loadAlerts();
-        await loadSettings();
-        await loadStats();
-        await loadUsers();
-        await loadOffers();
-        showSection('products');
-        setInterval(()=>{ loadStats(); loadOrders(); loadProducts(); loadAlerts(); },30000);
-    })();
+        // ------------------- تحميل البيانات الأولية -------------------
+        (async function init(){
+            await loadProducts();
+            await loadOrders();
+            await loadCoupons();
+            await loadAlerts();
+            await loadSettings();
+            await loadStats();
+            await loadUsers();
+            await loadOffers();
+            showSection('products');
+            setInterval(()=>{ loadStats(); loadOrders(); loadProducts(); loadAlerts(); },30000);
+        })();
 
-    // ربط الدوال العامة
-    window.openProductModal=openProductModal; window.closeProductModal=closeProductModal; window.saveProduct=saveProduct;
-    window.deleteProduct=deleteProduct; window.editProduct=editProduct; window.updateOrderStatus=updateOrderStatus;
-    window.generateInvoice=generateInvoice; window.exportOrdersCSV=exportOrdersCSV; window.openCouponModal=openCouponModal;
-    window.closeCouponModal=closeCouponModal; window.addCoupon=addCoupon; window.deleteCoupon=deleteCoupon;
-    window.deleteAlert=deleteAlert; window.updateSettings=updateSettings; window.logout=logout; window.toggleDarkMode=toggleDarkMode;
-    window.addVariantField=addVariantField; window.addGalleryField=addGalleryField; window.downloadSalesReport=downloadSalesReport;
-    window.updateShippingSettings=updateShippingSettings; window.openReplyModal=openReplyModal; window.closeReplyModal=closeReplyModal;
-    window.submitReply=submitReply; window.archiveOldOrders=archiveOldOrders; window.openOfferModal=openOfferModal;
-    window.closeOfferModal=closeOfferModal; window.saveOffer=saveOffer; window.deleteOffer=deleteOffer; window.editOffer=editOffer;
-    window.sendNewsletter=sendNewsletter;
+        // ربط الدوال العامة
+        window.openProductModal=openProductModal; window.closeProductModal=closeProductModal; window.saveProduct=saveProduct;
+        window.deleteProduct=deleteProduct; window.editProduct=editProduct; window.updateOrderStatus=updateOrderStatus;
+        window.generateInvoice=generateInvoice; window.exportOrdersCSV=exportOrdersCSV; window.openCouponModal=openCouponModal;
+        window.closeCouponModal=closeCouponModal; window.addCoupon=addCoupon; window.deleteCoupon=deleteCoupon;
+        window.deleteAlert=deleteAlert; window.updateSettings=updateSettings; window.logout=logout; window.toggleDarkMode=toggleDarkMode;
+        window.addVariantField=addVariantField; window.addGalleryField=addGalleryField; window.downloadSalesReport=downloadSalesReport;
+        window.updateShippingSettings=updateShippingSettings; window.openReplyModal=openReplyModal; window.closeReplyModal=closeReplyModal;
+        window.submitReply=submitReply; window.archiveOldOrders=archiveOldOrders; window.openOfferModal=openOfferModal;
+        window.closeOfferModal=closeOfferModal; window.saveOffer=saveOffer; window.deleteOffer=deleteOffer; window.editOffer=editOffer;
+        window.sendNewsletter=sendNewsletter;
+        // جعل الدوال الجديدة عامة
+        window.openCreateAdminModal = openCreateAdminModal;
+        window.closeCreateAdminModal = closeCreateAdminModal;
+        window.createAdmin = createAdmin;
+        window.changeMyPassword = changeMyPassword;
+        window.closeChangePasswordModal = closeChangePasswordModal;
+        window.submitChangePassword = submitChangePassword;
+        window.loadGeoReport = loadGeoReport;
+        window.changeOrderStatus = changeOrderStatus;
     </script>
 </body>
 

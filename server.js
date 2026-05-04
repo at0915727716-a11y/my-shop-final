@@ -18,6 +18,10 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const crypto = require('crypto');
 const cron = require('node-cron');
+// ========== الحزم الجديدة للميزات الإضافية ==========
+const QRCode = require('qrcode');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const webpush = require('web-push');
 
 // ========== Cloudinary ==========
 const cloudinary = require('cloudinary').v2;
@@ -42,6 +46,36 @@ const Wishlist = require('./models/Wishlist');
 const OrderArchive = require('./models/OrderArchive');
 const Offer = require('./models/Offer');
 
+// ========== نماذج إضافية للميزات الجديدة ==========
+const PushSubscriptionSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    endpoint: { type: String, required: true, unique: true },
+    keys: { p256dh: String, auth: String },
+    userAgent: String,
+    createdAt: { type: Date, default: Date.now }
+});
+const PushSubscription = mongoose.models.PushSubscription || mongoose.model('PushSubscription', PushSubscriptionSchema);
+
+const WholesalePriceSchema = new mongoose.Schema({
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    variantId: { type: String, default: null },
+    minQuantity: { type: Number, required: true, default: 1 },
+    price: { type: Number, required: true },
+    userType: { type: String, enum: ['wholesale', 'retail'], default: 'wholesale' },
+    isActive: { type: Boolean, default: true }
+}, { timestamps: true });
+const WholesalePrice = mongoose.models.WholesalePrice || mongoose.model('WholesalePrice', WholesalePriceSchema);
+
+// ========== إعداد Web Push ==========
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+        'mailto:admin@absistor.com',
+        process.env.VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY
+    );
+    console.log('✅ Web Push configured');
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -55,6 +89,7 @@ const connectDB = async () => {
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('✅ MongoDB Connected Successfully');
         await initAdmin();
+        await initSuperAdmin(); // إضافة مدير عام (سوبر أدمن) إذا لم يوجد
     } catch (err) {
         console.error('❌ MongoDB Connection Error:', err.message);
         setTimeout(connectDB, 5000);
@@ -74,6 +109,23 @@ const initAdmin = async () => {
     }
 };
 
+// إضافة مستخدم super_admin في حالة عدم وجود مستخدمين نهائياً (لنظام الأدوار)
+const initSuperAdmin = async () => {
+    const superAdminExists = await User.findOne({ role: 'super_admin' });
+    if (!superAdminExists) {
+        const hashed = bcrypt.hashSync('admin123', 10);
+        const superAdmin = new User({
+            username: 'superadmin',
+            email: 'superadmin@absistor.com',
+            passwordHash: hashed,
+            role: 'super_admin',
+            verified: true
+        });
+        await superAdmin.save();
+        console.log('✅ Super admin user created (superadmin@absistor.com / admin123)');
+    }
+};
+
 // ========== Create Directories ==========
 const uploadsPath = path.join(__dirname, 'public', 'uploads');
 const logsPath = path.join(__dirname, 'logs');
@@ -90,6 +142,33 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1d' }));
 app.use(morgan('combined', { stream: fs.createWriteStream(path.join(logsPath, 'access.log'), { flags: 'a' }) }));
+
+// ========== Middleware للصلاحيات (جديد) ==========
+const requireRole = (role) => (req, res, next) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل دخول' });
+    User.findById(req.session.userId).then(user => {
+        if (!user) return res.status(401).json({ error: 'مستخدم غير موجود' });
+        if (user.role === 'super_admin') return next();
+        if (user.role === role) return next();
+        res.status(403).json({ error: 'ليس لديك صلاحية' });
+    }).catch(() => res.status(500).json({ error: 'خطأ في التحقق' }));
+};
+
+// تعديل isAdmin ليدعم جلسات المستخدمين ذوي دور admin/super_admin
+const isAdmin = (req, res, next) => {
+    if (req.session.isAdmin) return next();
+    if (req.session.userId) {
+        User.findById(req.session.userId).then(user => {
+            if (user && (user.role === 'admin' || user.role === 'super_admin')) {
+                req.session.isAdmin = true;
+                return next();
+            }
+            res.status(401).json({ error: 'غير مصرح' });
+        }).catch(() => res.status(401).json({ error: 'غير مصرح' }));
+    } else {
+        res.status(401).json({ error: 'غير مصرح' });
+    }
+};
 
 // ========== Maintenance Mode Middleware ==========
 app.use(async (req, res, next) => {
@@ -138,11 +217,6 @@ app.use(session({
     saveUninitialized: false,
     cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 3600000 }
 }));
-
-const isAdmin = (req, res, next) => {
-    if (req.session.isAdmin) return next();
-    res.status(401).json({ error: 'غير مصرح' });
-};
 
 // ========== Email with Resend (SMTP) ==========
 let transporter = null;
@@ -289,6 +363,226 @@ function notifyUser(userId, event, data) {
     if (socketId) io.to(socketId).emit(event, data);
 }
 
+// ========================
+// الميزات الجديدة (10+6) - إدارة الأدمن، Push، QR، تقارير، لوحة العميل، Stripe، Tiered Pricing، إلخ
+// ========================
+
+// ---------- 1. إدارة الأدمن (للسوبر أدمن فقط) ----------
+app.post('/api/admin/create-admin', requireRole('super_admin'), async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(400).json({ error: 'البريد موجود مسبقاً' });
+        const hashed = bcrypt.hashSync(password, 10);
+        const newAdmin = new User({ username: name, email, passwordHash: hashed, role: 'admin', verified: true, createdBy: req.session.userId });
+        await newAdmin.save();
+        res.json({ success: true, message: 'تم إنشاء الأدمن', adminId: newAdmin._id });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/admin/update-admin/:id', requireRole('super_admin'), async (req, res) => {
+    try {
+        const { name, newPassword } = req.body;
+        const admin = await User.findById(req.params.id);
+        if (!admin || admin.role !== 'admin') return res.status(404).json({ error: 'الأدمن غير موجود' });
+        if (name) admin.username = name;
+        if (newPassword) admin.passwordHash = bcrypt.hashSync(newPassword, 10);
+        await admin.save();
+        res.json({ success: true, message: 'تم تحديث الأدمن' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/admin/admins-stats', requireRole('super_admin'), async (req, res) => {
+    try {
+        const admins = await User.find({ role: 'admin' }).select('-passwordHash');
+        const stats = await Promise.all(admins.map(async (admin) => {
+            const orders = await Order.find({ handledBy: admin._id, status: 'تم التوصيل' });
+            const totalSales = orders.reduce((sum, o) => sum + o.total, 0);
+            return {
+                id: admin._id,
+                name: admin.username,
+                email: admin.email,
+                ordersCount: orders.length,
+                totalSales,
+                lastLogin: admin.lastLogin || null
+            };
+        }));
+        res.json(stats);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/admin/change-password', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.session.userId);
+    if (!user) return res.status(404).json({ error: 'مستخدم غير موجود' });
+    if (!bcrypt.compareSync(currentPassword, user.passwordHash)) return res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' });
+    user.passwordHash = bcrypt.hashSync(newPassword, 10);
+    await user.save();
+    res.json({ success: true, message: 'تم تغيير كلمة المرور' });
+});
+
+// ---------- 2. Push Notifications ----------
+app.post('/api/notifications/subscribe', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'تسجيل الدخول مطلوب' });
+    const subscription = req.body;
+    try {
+        await PushSubscription.findOneAndUpdate(
+            { endpoint: subscription.endpoint },
+            { userId: req.session.userId, keys: subscription.keys, userAgent: req.headers['user-agent'] },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/notifications/unsubscribe', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'تسجيل الدخول مطلوب' });
+    const { endpoint } = req.body;
+    await PushSubscription.deleteOne({ endpoint, userId: req.session.userId });
+    res.json({ success: true });
+});
+
+// ---------- 3. QR Code Generation ----------
+app.get('/api/qr/generate', async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ error: 'URL required' });
+    try {
+        const qrBuffer = await QRCode.toBuffer(url, { type: 'png', margin: 1 });
+        res.setHeader('Content-Type', 'image/png');
+        res.send(qrBuffer);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ---------- 4. Sales Reports by Location ----------
+app.get('/api/admin/reports/sales-by-location', isAdmin, async (req, res) => {
+    try {
+        const { groupBy = 'city', fromDate, toDate } = req.query;
+        let match = {};
+        if (fromDate || toDate) {
+            match.date = {};
+            if (fromDate) match.date.$gte = new Date(fromDate);
+            if (toDate) match.date.$lte = new Date(toDate);
+        }
+        const groupField = groupBy === 'country' ? 'shippingAddress.country' : 'shippingAddress.city';
+        const result = await Order.aggregate([
+            { $match: match },
+            { $group: { _id: `$${groupField}`, totalSales: { $sum: '$total' }, ordersCount: { $sum: 1 } } },
+            { $sort: { totalSales: -1 } }
+        ]);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ---------- 5. Print Invoice (HTML) - تم تغيير العملة إلى دينار ----------
+app.get('/api/orders/:id/print', async (req, res) => {
+    try {
+        const order = await Order.findOne({ orderId: req.params.id });
+        if (!order) return res.status(404).send('الطلب غير موجود');
+        const html = `
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head><meta charset="UTF-8"><title>فاتورة ${order.orderId}</title>
+        <style>
+            body { font-family: Arial; margin: 2rem; }
+            .invoice { max-width: 800px; margin: auto; border: 1px solid #ddd; padding: 2rem; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
+            @media print { .no-print { display: none; } }
+        </style>
+        </head>
+        <body>
+        <div class="invoice">
+            <h2>Absi Store - فاتورة</h2>
+            <p><strong>رقم الطلب:</strong> ${order.orderId}</p>
+            <p><strong>التاريخ:</strong> ${new Date(order.date).toLocaleString()}</p>
+            <p><strong>العميل:</strong> ${order.customerName} - ${order.customerPhone} - ${order.customerAddress}</p>
+            <table>
+                <thead><tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
+                <tbody>${order.items.map(item => `<tr><td>${item.name}</td><td>${item.quantity}</td><td>${item.price}</td><td>${item.price * item.quantity} دينار</td></tr>`).join('')}</tbody>
+            </table>
+            <h3>الإجمالي: ${order.total} دينار</h3>
+            <button class="no-print" onclick="window.print()">طباعة</button>
+        </div>
+        </body>
+        </html>
+        `;
+        res.send(html);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+// ---------- 6. Customer Dashboard Endpoints ----------
+app.get('/api/dashboard/my-orders', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
+    const orders = await Order.find({ customerEmail: req.session.userEmail }).sort({ date: -1 });
+    res.json(orders);
+});
+app.get('/api/dashboard/wishlist', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
+    const wishlist = await Wishlist.find({ userId: req.session.userId }).populate('productId');
+    res.json(wishlist);
+});
+app.get('/api/dashboard/profile', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
+    const user = await User.findById(req.session.userId).select('-passwordHash');
+    res.json(user);
+});
+
+// ---------- 7. Apple/Google Pay (Stripe Payment Intent) ----------
+app.post('/api/payment/create-intent', async (req, res) => {
+    try {
+        const { amount, currency = 'usd', metadata = {} } = req.body;
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100),
+            currency,
+            metadata,
+            automatic_payment_methods: { enabled: true }
+        });
+        res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ---------- 8. Tiered Pricing & Wholesale (دالة مساعدة) ----------
+async function calculateItemPrice(product, variant, quantity, userId) {
+    let basePrice = variant ? (variant.price || product.price) : product.price;
+    let user = null;
+    let isWholesale = false;
+    if (userId) {
+        user = await User.findById(userId);
+        isWholesale = user && user.isWholesale === true;
+    }
+    if (isWholesale) {
+        const wholesale = await WholesalePrice.findOne({ productId: product._id, variantId: variant ? variant.id : null, minQuantity: { $lte: quantity }, isActive: true }).sort({ minQuantity: -1 });
+        if (wholesale) return wholesale.price;
+    }
+    if (product.tieredPricing && product.tieredPricing.length) {
+        const sorted = [...product.tieredPricing].sort((a,b) => b.minQty - a.minQty);
+        const applicable = sorted.find(tier => quantity >= tier.minQty);
+        if (applicable) {
+            const discount = (basePrice * applicable.discountPercent) / 100;
+            return basePrice - discount;
+        }
+    }
+    return basePrice;
+}
+
 // ========== 1. Public Products (with dynamic offers) ==========
 app.get('/api/products', async (req, res) => {
     try {
@@ -379,7 +673,7 @@ app.delete('/api/admin/products/:id', isAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ========== 3. Orders ==========
+// ========== 3. Orders (تم تعديلها لدعم tiered pricing و wholesale و handledBy) ==========
 const SHIPPING_COSTS = { standard: 10, express: 25, pickup: 0 };
 app.post('/api/orders', [
     body('customerName').notEmpty(),
@@ -395,20 +689,20 @@ app.post('/api/orders', [
         let total = 0;
         const itemsData = [];
         for (const item of cartItems) {
-            let product;
+            let product = await Product.findOne({ id: item.productId });
+            if (!product) return res.status(400).json({ error: `المنتج غير موجود` });
+            let variant = null;
             if (item.variantId) {
-                product = await Product.findOne({ id: item.productId });
-                const variant = product.variants.find(v => v.id === item.variantId);
+                variant = product.variants.find(v => v.id === item.variantId);
                 if (!variant || variant.stock < item.quantity) return res.status(400).json({ error: `المنتج غير متوفر` });
-                total += (variant.price || product.price) * item.quantity;
-                itemsData.push({ product, quantity: item.quantity, variant });
             } else {
-                product = await Product.findOne({ id: item.productId });
-                if (!product) return res.status(400).json({ error: `المنتج غير موجود` });
                 if (product.stock < item.quantity) return res.status(400).json({ error: `المنتج ${product.name} غير متوفر` });
-                total += product.price * item.quantity;
-                itemsData.push({ product, quantity: item.quantity, variant: null });
             }
+            // حساب السعر باستخدام الدالة الجديدة (tiered pricing & wholesale)
+            let userId = req.session.userId || null;
+            let price = await calculateItemPrice(product, variant, item.quantity, userId);
+            total += price * item.quantity;
+            itemsData.push({ product, quantity: item.quantity, variant, price });
         }
 
         let discount = 0;
@@ -458,22 +752,20 @@ app.post('/api/orders', [
             orderId, customerName, customerPhone, customerAddress, customerEmail: customerEmail || null,
             notes: notes || null, items: [], total: finalTotal, status: 'قيد المراجعة',
             shippingMethod, shippingCost, pointsRedeemed, pointsDiscount, couponCode: usedCoupon,
-            discountAmount: discount
+            discountAmount: discount,
+            handledBy: req.session.userId || null,  // إضافة من تعامل مع الطلب
+            shippingAddress: { city: '', country: '' } // سيتم تحديثه لاحقاً من عنوان العميل
         });
 
-        for (const { product, quantity, variant } of itemsData) {
+        let pointsEarned = 0;
+        for (const { product, quantity, variant, price } of itemsData) {
             newOrder.items.push({
                 productId: product.id,
                 name: product.name,
                 quantity,
-                price: variant ? (variant.price || product.price) : product.price,
+                price,
                 variantId: variant ? variant.id : null
             });
-        }
-        await newOrder.save();
-
-        let pointsEarned = 0;
-        for (const { product, quantity, variant } of itemsData) {
             if (variant) {
                 const variantIndex = product.variants.findIndex(v => v.id === variant.id);
                 if (variantIndex !== -1) product.variants[variantIndex].stock -= quantity;
@@ -488,8 +780,10 @@ app.post('/api/orders', [
                     await new Alert({ productId: product.id, productName: product.name, remainingStock: product.stock }).save();
                 }
             }
-            pointsEarned += Math.floor(product.price * quantity * 0.01);
+            pointsEarned += Math.floor(price * quantity * 0.01);
         }
+        await newOrder.save();
+
         if (customerEmail) {
             if (!user) user = await User.findOne({ email: customerEmail });
             if (user) {
@@ -507,7 +801,8 @@ app.post('/api/orders', [
             if (userDb) notifyUser(userDb.id, 'newOrder', { orderId, total: finalTotal });
         }
 
-        let whatsappText = `🛍️ طلب جديد في Absi stor\n👤 الاسم: ${customerName}\n📞 رقم الجوال: ${customerPhone}\n🏠 العنوان: ${customerAddress}\n🆔 رقم الطلب: ${orderId}\n💰 الإجمالي: ${finalTotal} ريال (الشحن: ${shippingCost} ريال)\n📦 المنتجات:\n`;
+        // WhatsApp message with updated currency (دينار)
+        let whatsappText = `🛍️ طلب جديد في Absi stor\n👤 الاسم: ${customerName}\n📞 رقم الجوال: ${customerPhone}\n🏠 العنوان: ${customerAddress}\n🆔 رقم الطلب: ${orderId}\n💰 الإجمالي: ${finalTotal} دينار (الشحن: ${shippingCost} دينار)\n📦 المنتجات:\n`;
         for (const item of newOrder.items) whatsappText += `- ${item.name} (${item.quantity} × ${item.price}) = ${item.price * item.quantity}\n`;
         if (notes) whatsappText += `\n📝 ملاحظات: ${notes}`;
         const whatsappLink = `https://wa.me/218915727716?text=${encodeURIComponent(whatsappText)}`;
@@ -518,31 +813,61 @@ app.post('/api/orders', [
     }
 });
 
-// ========== 4. Admin Authentication ==========
+// ========== 4. Admin Authentication (تم تعديلها لدعم جدول User أيضًا) ==========
 app.post('/api/admin/login', async (req, res) => {
     const { username, password } = req.body;
-    const admin = await Admin.findOne({ username });
+    // أولاً: البحث في جدول Admins القديم
+    let admin = await Admin.findOne({ username });
     if (admin && bcrypt.compareSync(password, admin.passwordHash)) {
         req.session.isAdmin = true;
-        res.json({ success: true });
-    } else res.status(401).json({ error: 'بيانات غير صحيحة' });
+        req.session.userId = admin._id;
+        return res.json({ success: true });
+    }
+    // ثانياً: البحث في جدول Users الجديد بدور admin أو super_admin
+    let user = await User.findOne({ email: username, role: { $in: ['admin', 'super_admin'] } });
+    if (!user) user = await User.findOne({ username, role: { $in: ['admin', 'super_admin'] } });
+    if (user && bcrypt.compareSync(password, user.passwordHash)) {
+        req.session.isAdmin = true;
+        req.session.userId = user.id;
+        req.session.userEmail = user.email;
+        req.session.userRole = user.role;
+        // تحديث آخر دخول للمستخدم
+        user.lastLogin = new Date();
+        await user.save();
+        return res.json({ success: true, role: user.role });
+    }
+    res.status(401).json({ error: 'بيانات غير صحيحة' });
 });
+
 app.post('/api/admin/logout', (req, res) => { req.session.destroy(); res.json({ success: true }); });
 
-// ========== 5. Admin Orders ==========
+// ========== 5. Admin Orders (تم تعديل حالة الطلب لإضافة handledBy و push notification) ==========
 app.get('/api/admin/orders', isAdmin, async (req, res) => {
     const orders = await Order.find().sort({ date: -1 });
     res.json({ success: true, data: orders });
 });
+
 app.put('/api/admin/orders/:id/status', isAdmin, async (req, res) => {
     const order = await Order.findOne({ orderId: req.params.id });
     if (!order) return res.status(404).json({ error: 'الطلب غير موجود' });
     order.status = req.body.status;
+    if (req.session.userId) order.handledBy = req.session.userId;
     await order.save();
     if (order.customerEmail) {
         sendEmail(order.customerEmail, `تحديث حالة طلبك #${order.orderId}`, `<p>أهلاً ${order.customerName}، تم تغيير حالة طلبك إلى: ${req.body.status}</p>`);
         const user = await User.findOne({ email: order.customerEmail });
         if (user) notifyUser(user.id, 'orderStatusChanged', { orderId: order.orderId, status: order.status });
+        // إرسال push notification
+        const subscriptions = await PushSubscription.find({ userId: user ? user._id : null });
+        for (const sub of subscriptions) {
+            try {
+                await webpush.sendNotification(sub, JSON.stringify({
+                    title: 'تحديث الطلب',
+                    body: `طلبك #${order.orderId} أصبح ${req.body.status}`,
+                    url: `/account/orders`
+                }));
+            } catch(e) { console.error('Push error', e); }
+        }
     }
     res.json({ success: true });
 });
@@ -705,6 +1030,9 @@ app.post('/api/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user || !bcrypt.compareSync(password, user.passwordHash)) return res.status(401).json({ error: 'بيانات غير صحيحة' });
     if (!user.verified) return res.status(401).json({ error: 'يرجى تفعيل حسابك عبر البريد الإلكتروني أولاً' });
+    // تحديث آخر دخول
+    user.lastLogin = new Date();
+    await user.save();
     req.session.userId = user.id;
     req.session.userName = user.username;
     req.session.userEmail = user.email;
@@ -740,7 +1068,7 @@ app.get('/api/account/loyalty', async (req, res) => {
     res.json({ success: true, points: user.loyaltyPoints });
 });
 
-// ========== Edit Profile ==========
+// Edit Profile
 app.put('/api/account/profile', async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
     const { username, email } = req.body;
@@ -758,7 +1086,7 @@ app.put('/api/account/profile', async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== Forgot / Reset Password ==========
+// Forgot / Reset Password
 app.post('/api/forgot-password', async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
@@ -783,7 +1111,7 @@ app.post('/api/reset-password', async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== Sync Cart with Server ==========
+// Sync Cart with Server
 app.post('/api/cart/sync', async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'غير مسجل' });
     const { cart } = req.body;
@@ -797,7 +1125,7 @@ app.get('/api/cart/sync', async (req, res) => {
     res.json({ cart: user.cart || [] });
 });
 
-// ========== Wishlist ==========
+// Wishlist
 app.get('/api/wishlist', async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'تسجيل دخول مطلوب' });
     const wishlist = await Wishlist.find({ userId: req.session.userId });
@@ -817,7 +1145,7 @@ app.delete('/api/wishlist/:productId', async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== Advanced Reports (Excel) ==========
+// Advanced Reports (Excel)
 app.get('/api/admin/reports/sales', isAdmin, async (req, res) => {
     const orders = await Order.find().sort({ date: -1 });
     const workbook = new ExcelJS.Workbook();
@@ -844,12 +1172,12 @@ app.get('/api/admin/reports/sales', isAdmin, async (req, res) => {
     res.end();
 });
 
-// ========== Health Check ==========
+// Health Check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', uptime: process.uptime(), mongo: mongoose.connection.readyState === 1 });
 });
 
-// ========== PDF Invoice ==========
+// PDF Invoice (تم تغيير العملة إلى دينار)
 app.get('/api/orders/:id/invoice', isAdmin, async (req, res) => {
     const order = await Order.findOne({ orderId: req.params.id });
     if (!order) return res.status(404).json({ error: 'الطلب غير موجود' });
@@ -867,14 +1195,14 @@ app.get('/api/orders/:id/invoice', isAdmin, async (req, res) => {
     doc.moveDown();
     doc.text('المنتجات:', { underline: true });
     order.items.forEach(item => {
-        doc.text(`- ${item.name} (${item.quantity} × ${item.price}) = ${item.price * item.quantity}`);
+        doc.text(`- ${item.name} (${item.quantity} × ${item.price}) = ${item.price * item.quantity} دينار`);
     });
     doc.moveDown();
-    doc.fontSize(14).text(`الإجمالي: ${order.total} ريال`, { align: 'right' });
+    doc.fontSize(14).text(`الإجمالي: ${order.total} دينار`, { align: 'right' });
     doc.end();
 });
 
-// ========== Archive Old Orders ==========
+// Archive Old Orders
 app.post('/api/admin/archive-orders', isAdmin, async (req, res) => {
     try {
         const oneYearAgo = new Date();
@@ -892,7 +1220,7 @@ app.post('/api/admin/archive-orders', isAdmin, async (req, res) => {
     }
 });
 
-// ========== Offers Management ==========
+// Offers Management
 app.get('/api/admin/offers', isAdmin, async (req, res) => {
     const offers = await Offer.find();
     res.json({ success: true, data: offers });
@@ -915,7 +1243,7 @@ app.delete('/api/admin/offers/:id', isAdmin, async (req, res) => {
     res.json({ success: true });
 });
 
-// ========== Migration from JSON ==========
+// Migration from JSON
 app.post('/api/admin/migrate-from-json', isAdmin, async (req, res) => {
     const dataDir = path.join(__dirname, 'data');
     try {
@@ -931,7 +1259,7 @@ app.post('/api/admin/migrate-from-json', isAdmin, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ========== Scheduled Backup (cron daily at 3 AM) ==========
+// Scheduled Backup (cron daily at 3 AM)
 cron.schedule('0 3 * * *', () => {
     console.log('🔄 Running scheduled backup...');
     const { exec } = require('child_process');
@@ -942,20 +1270,43 @@ cron.schedule('0 3 * * *', () => {
     });
 });
 
-// ========== Global Error Handler ==========
+// ---------- إضافة نقطة نهاية إرسال نشرة بريدية جماعية (Newsletter) ----------
+app.post('/api/admin/send-newsletter', isAdmin, async (req, res) => {
+    try {
+        const { subject, html } = req.body;
+        if (!subject || !html) return res.status(400).json({ error: 'الموضوع والمحتوى مطلوبان' });
+        const users = await User.find({ verified: true }).select('email');
+        if (users.length === 0) return res.json({ success: true, message: 'لا يوجد مستخدمون مفعلون' });
+        
+        let sentCount = 0;
+        for (const user of users) {
+            await sendEmail(user.email, subject, html);
+            sentCount++;
+            // تأخير بسيط لتجنب الحظر
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        res.json({ success: true, message: `تم إرسال النشرة إلى ${sentCount} مستخدم` });
+    } catch (err) {
+        console.error('Newsletter error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Global Error Handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'حدث خطأ داخلي في الخادم' });
 });
 
-// ========== Confirm env variable at startup ==========
+// Confirm env variable at startup
 console.log('🔐 RESEND_API_KEY loaded?', process.env.RESEND_API_KEY ? '✅ Yes' : '❌ No');
 
-// ========== Start Server (with Socket.io) ==========
+// Start Server (with Socket.io)
 serverSocket.listen(PORT, () => {
     console.log(`\n🚀 متجر Absi stor يعمل على http://localhost:${PORT}`);
     console.log(`📱 المتجر: http://localhost:${PORT}/shop.html`);
     console.log(`🔐 لوحة التحكم: http://localhost:${PORT}/login.html`);
     console.log(`📞 واتساب المدير: +218915727716`);
-    console.log(`🔑 بيانات الدخول للمدير: admin / admin123\n`);
+    console.log(`🔑 بيانات الدخول للمدير: admin / admin123`);
+    console.log(`🔑 بيانات الدخول للسوبر أدمن: superadmin@absistor.com / admin123`);
 });

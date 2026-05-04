@@ -8,6 +8,12 @@ const orderItemSchema = new mongoose.Schema({
     variantId: { type: String, default: null }
 });
 
+// مخطط عنوان الشحن (جديد للتقارير الجغرافية)
+const shippingAddressSchema = new mongoose.Schema({
+    city: { type: String, default: '' },
+    country: { type: String, default: '' }
+});
+
 const orderSchema = new mongoose.Schema({
     orderId: { type: String, required: true, unique: true },
     customerName: { type: String, required: true },
@@ -29,12 +35,21 @@ const orderSchema = new mongoose.Schema({
 
     notes: { type: String, default: '' },
     couponCode: { type: String, default: null },
-    discountAmount: { type: Number, default: 0 }
+    discountAmount: { type: Number, default: 0 },
+
+    // ========== الحقول الجديدة ==========
+    // الأدمن الذي تعامل مع الطلب (لإحصائيات الأدمن)
+    handledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    // معلومات الشحن التفصيلية (للإحصائيات الجغرافية)
+    shippingAddress: { type: shippingAddressSchema, default: () => ({}) }
 }, {
     timestamps: true
 });
 
-// فقط هذا index (بدون orderId)
+// الفهارس (مع إضافة فهارس جديدة للتقارير الجغرافية)
 orderSchema.index({ customerEmail: 1, status: 1 });
+orderSchema.index({ 'shippingAddress.city': 1 });
+orderSchema.index({ 'shippingAddress.country': 1 });
+orderSchema.index({ handledBy: 1 }); // فهرس سريع لاستعلامات إحصائيات الأدمن
 
 module.exports = mongoose.model('Order', orderSchema);

@@ -37,9 +37,13 @@
         "passport-facebook": "^3.0.0",
         "passport-google-oauth20": "^2.0.0",
         "pdfkit": "^0.18.0",
+        "qrcode": "^1.5.4",
         "redis": "^5.12.1",
+        "resend": "^6.12.2",
         "socket.io": "^4.8.3",
+        "stripe": "^17.7.0",
         "uuid": "^14.0.0",
+        "web-push": "^3.6.7",
         "winston": "^3.19.0",
         "xss-clean": "^0.1.4"
     },

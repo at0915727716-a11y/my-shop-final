@@ -11,7 +11,13 @@ const reviewSchema = new mongoose.Schema({
 
     // ========== ردود الإدارة (جديد) ==========
     adminReply: { type: String, default: null }, // نص رد المدير
-    adminReplyDate: { type: Date, default: null } // تاريخ الرد
+    adminReplyDate: { type: Date, default: null }, // تاريخ الرد
+
+    // ========== رفع الصور والفيديو في التقييمات ==========
+    media: [{
+        type: { type: String, enum: ['image', 'video'], default: 'image' },
+        url: { type: String, required: true }
+    }]
 });
 
 // إضافة فهرس لتحسين سرعة جلب التقييمات حسب المنتج
